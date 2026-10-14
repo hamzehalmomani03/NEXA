@@ -1,6 +1,7 @@
-
+import { join } from 'path';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ServeStaticModule } from '@nestjs/serve-static';
 import * as Joi from 'joi';
 
 import { AppController } from './app.controller';
@@ -23,6 +24,10 @@ import { CustomersModule } from './customers/customers.module';
         JWT_SECRET: Joi.string().min(32).required(),
         PORT: Joi.number().port().default(3000),
       }),
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', '..', 'frontend', 'dist'),
+      exclude: ['/api/{*splat}'],
     }),
     PrismaModule,
     HealthModule,

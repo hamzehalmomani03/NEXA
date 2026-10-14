@@ -4,9 +4,7 @@ import type { FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Login.css';
 
-const API_URL = (
-  import.meta.env.VITE_API_URL || 'http://localhost:3000'
-).replace(/\/+$/, '');
+const API_URL = import.meta.env.VITE_API_URL ?? '/api';
 
 interface Organization {
   id: string;

@@ -3,9 +3,8 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import './Invoices.css';
 
-const API_URL = (
-  import.meta.env.VITE_API_URL || 'http://localhost:3000'
-).replace(/\/$/, '');
+const API_URL = import.meta.env.VITE_API_URL ?? '/api';
+  
 
 type InvoiceStatus = 'Paid' | 'Pending' | 'Overdue';
 

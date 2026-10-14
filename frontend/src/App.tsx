@@ -1,4 +1,3 @@
-
 import './App.css';
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
@@ -22,17 +21,35 @@ import Reports from './Reports';
 import Settings from './Settings';
 import Team from './Team';
 
-/* =========================
-   TRANSLATION HELPER
-========================= */
+const API_URL = import.meta.env.VITE_API_URL ?? '/api';
+
+type Product = {
+  id: string;
+  name: string;
+  sku: string;
+  price: string | number;
+  stockQuantity: number;
+  lowStockAt: number;
+};
+
+type SaleItem = {
+  quantity: number;
+  product?: { id: string; name: string; sku: string } | null;
+};
+
+type Sale = {
+  id: string;
+  invoiceNumber?: string;
+  totalAmount: string | number;
+  subtotal?: string | number;
+  status: string;
+  createdAt: string;
+  items: SaleItem[];
+};
 
 function tr(language: string, en: string, ar: string) {
   return language.startsWith('ar') ? ar : en;
 }
-
-/* =========================
-   DASHBOARD NAVIGATION
-========================= */
 
 const navigation = [
   { icon: '◫', label: 'Overview', path: '/overview' },
@@ -41,7 +58,6 @@ const navigation = [
   { icon: '↗', label: 'Sales', path: '/sales' },
   { icon: '▤', label: 'Invoices', path: '/invoices' },
   { icon: '◎', label: 'Customers', path: '/customers' },
-  
 ];
 
 const navigationTranslations: Record<string, string> = {
@@ -57,41 +73,10 @@ const navigationTranslations: Record<string, string> = {
   Settings: 'الإعدادات',
 };
 
-/* =========================
-   OVERVIEW PAGE
-========================= */
-
 function Overview() {
   const { i18n } = useTranslation();
   const language = i18n.language;
   const locale = language.startsWith('ar') ? 'ar-JO' : 'en-US';
-  const apiUrl = (
-    import.meta.env.VITE_API_URL || 'http://localhost:3000'
-  ).replace(/\/+$/, '');
-
-  type Product = {
-    id: string;
-    name: string;
-    sku: string;
-    price: string | number;
-    stockQuantity: number;
-    lowStockAt: number;
-  };
-
-  type SaleItem = {
-    quantity: number;
-    product?: { id: string; name: string; sku: string } | null;
-  };
-
-  type Sale = {
-    id: string;
-    invoiceNumber?: string;
-    totalAmount: string | number;
-    subtotal?: string | number;
-    status: string;
-    createdAt: string;
-    items: SaleItem[];
-  };
 
   const [sales, setSales] = useState<Sale[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -99,7 +84,6 @@ function Overview() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Use localStorage consistently across the application.
   const token = localStorage.getItem('nexa_token');
 
   let organizationId = '';
@@ -141,15 +125,15 @@ function Overview() {
 
         const [salesResponse, productsResponse, stockResponse] =
           await Promise.all([
-            fetch(`${apiUrl}/sales?${query}`, {
+            fetch(`${API_URL}/sales?${query}`, {
               headers,
               signal: controller.signal,
             }),
-            fetch(`${apiUrl}/products?${query}`, {
+            fetch(`${API_URL}/products?${query}`, {
               headers,
               signal: controller.signal,
             }),
-            fetch(`${apiUrl}/inventory/low-stock?${query}`, {
+            fetch(`${API_URL}/inventory/low-stock?${query}`, {
               headers,
               signal: controller.signal,
             }),
@@ -218,7 +202,7 @@ function Overview() {
     void loadDashboard();
 
     return () => controller.abort();
-  }, [token, organizationId, language, apiUrl]);
+  }, [token, organizationId, language]);
 
   const money = (amount: number) =>
     new Intl.NumberFormat(locale, {
@@ -783,10 +767,6 @@ function Overview() {
   );
 }
 
-/* =========================
-   DASHBOARD LAYOUT
-========================= */
-
 function DashboardLayout() {
   const location = useLocation();
   const { i18n } = useTranslation();
@@ -843,7 +823,6 @@ function DashboardLayout() {
       '/settings': 'Settings',
     }[currentPath] ?? 'Overview');
 
-  // Use localStorage consistently with Login.tsx.
   const organizationText = localStorage.getItem('nexa_organization');
   const userText = localStorage.getItem('nexa_user');
 
@@ -887,7 +866,6 @@ function DashboardLayout() {
     .toUpperCase();
 
   function handleLogout() {
-    // Clear both stores to avoid stale sessions from earlier versions.
     localStorage.removeItem('nexa_token');
     localStorage.removeItem('nexa_user');
     localStorage.removeItem('nexa_organization');
@@ -1151,12 +1129,7 @@ function DashboardLayout() {
   );
 }
 
-/* =========================
-   APP
-========================= */
-
 function App() {
-  // Match the storage used by Login.tsx and the other pages.
   const token = localStorage.getItem('nexa_token');
   const location = useLocation();
 

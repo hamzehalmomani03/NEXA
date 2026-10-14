@@ -62,9 +62,7 @@ export default function Settings() {
   const t = (english: string, arabic: string) =>
     isArabic ? arabic : english;
 
-  const API_URL = (
-    import.meta.env.VITE_API_URL || 'http://localhost:3000'
-  ).replace(/\/+$/, '');
+  const API_URL = import.meta.env.VITE_API_URL ?? '/api';
 
   const [activeSection, setActiveSection] =
     useState<SettingsSection>('General');

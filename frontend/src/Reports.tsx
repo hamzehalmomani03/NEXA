@@ -32,9 +32,7 @@ interface ReportData {
   topProducts: ReportProduct[];
 }
 
-const API_URL = (
-  import.meta.env.VITE_API_URL || 'http://localhost:3000'
-).replace(/\/$/, '');
+const API_URL = import.meta.env.VITE_API_URL ?? '/api';
 
 export default function Reports() {
   const { i18n } = useTranslation();

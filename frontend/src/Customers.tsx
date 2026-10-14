@@ -1,8 +1,9 @@
-
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import './Customers.css';
+
+const API_URL = import.meta.env.VITE_API_URL ?? '/api';
 
 type CustomerStatus = 'Active' | 'Inactive';
 type ApiCustomerStatus = 'ACTIVE' | 'INACTIVE';
@@ -43,8 +44,6 @@ interface Organization {
   role?: string;
 }
 
-const API_URL = 'http://localhost:3000';
-
 const emptyForm: CustomerForm = {
   name: '',
   email: '',
@@ -82,7 +81,7 @@ async function getErrorMessage(response: Response): Promise<string> {
       return message;
     }
   } catch {
-    // The server may return a non-JSON response.
+    return `Request failed (${response.status})`;
   }
 
   return `Request failed (${response.status})`;

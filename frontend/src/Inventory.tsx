@@ -35,40 +35,37 @@ type Movement = {
 type FormMode = 'restock' | 'adjust';
 
 function getOrganizationId(): string {
-  const stored = localStorage.getItem('nexa_token');
+  const savedOrganization = localStorage.getItem('nexa_organization');
 
-  if (!stored) {
+  if (!savedOrganization) {
     throw new Error('No organization selected. Please sign in again.');
   }
 
   try {
-    const parsed: unknown = JSON.parse(stored);
+    const organization = JSON.parse(savedOrganization);
 
-    if (typeof parsed === 'string' && parsed.trim()) {
-      return parsed;
+    if (
+      !organization.id ||
+      String(organization.id).trim() === ''
+    ) {
+      throw new Error('Selected organization has no valid ID.');
     }
 
-    if (parsed && typeof parsed === 'object') {
-      const organization = parsed as {
-        id?: string;
-        organizationId?: string;
-      };
-
-      if (organization.id) return organization.id;
-      if (organization.organizationId) return organization.organizationId;
+    return String(organization.id);
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      throw new Error('Saved organization data is invalid. Please sign in again.');
     }
-  } catch {
-    if (stored.trim()) return stored;
+
+    throw error;
   }
-
-  throw new Error('Selected organization is invalid. Please sign in again.');
 }
 
 async function apiRequest<T>(
   path: string,
   options: RequestInit = {},
 ): Promise<T> {
-  const token = sessionStorage.getItem('nexa_token');
+  const token = localStorage.getItem('nexa_token');
 
   if (!token) {
     throw new Error('Your session has expired. Please sign in again.');

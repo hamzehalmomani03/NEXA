@@ -1464,3 +1464,40 @@ button.topbar-avatar:focus-visible {
     width: min(290px, calc(100vw - 32px));
   }
 }
+
+/* ==========================================
+   NEXA - Jordanian Royal Emblem Watermark
+   ========================================== */
+
+/* Main application layer */
+.app-shell {
+  --sidebar-width: 258px;
+  position: relative;
+  min-height: 100vh;
+  isolation: isolate;
+  background: var(--color-bg);
+}
+
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.header-emblem {
+  width: 80px;
+  height: 75px;
+  padding: 3px;
+  object-fit: contain;
+  background: #000000;
+  border: 1px solid #34d399;
+  border-radius: 8px;
+}
+
+.brand-name {
+  color: #34d399;
+  font-size: 18px;
+  font-weight: 700;
+}

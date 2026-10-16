@@ -78,6 +78,33 @@ function Overview() {
   const language = i18n.language;
   const locale = language.startsWith('ar') ? 'ar-JO' : 'en-US';
 
+  const userText = localStorage.getItem('nexa_user');
+
+  let overviewUser: {
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+  } | null = null;
+
+  try {
+    overviewUser = userText
+      ? (JSON.parse(userText) as {
+          firstName?: string;
+          lastName?: string;
+          email?: string;
+        })
+      : null;
+  } catch {
+    overviewUser = null;
+  }
+
+  const displayName =
+    [overviewUser?.firstName, overviewUser?.lastName]
+      .filter(Boolean)
+      .join(' ') ||
+    overviewUser?.email ||
+    'NEXA User';
+
   const [sales, setSales] = useState<Sale[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [lowStockCount, setLowStockCount] = useState(0);
@@ -386,7 +413,7 @@ function Overview() {
           </div>
 
           <h1>
-            {greeting}، {tr(language, 'Hamzeh', 'حمزة')}{' '}
+            {greeting}، {displayName}{' '}
             <span className="wave">✳</span>
           </h1>
 
@@ -1012,6 +1039,15 @@ function DashboardLayout() {
             </strong>
           </div>
 
+          <div className="header-brand">
+            <img
+              className="header-emblem"
+              src="https://commons.wikimedia.org/wiki/Special:FilePath/Jordan_Coat_of_Arms.jpg"
+              alt="شعار المملكة الأردنية الهاشمية"
+            />
+            <span className="brand-name">NEXA</span>
+          </div>
+
           <div className="topbar-actions">
             <button
               className="secondary-button"
@@ -1137,7 +1173,9 @@ function App() {
     return token ? (
       <Navigate to="/products" replace />
     ) : (
-      <Login />
+      <>
+        <Login />
+      </>
     );
   }
 

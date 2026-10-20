@@ -1,25 +1,25 @@
-
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Login.css';
-
+ 
 const API_URL = import.meta.env.VITE_API_URL ?? '/api';
-
+ 
 interface Organization {
   id: string;
   name: string;
   slug: string;
   role: string;
 }
-
+ 
 interface AuthUser {
   id: string;
   email: string;
   firstName: string;
   lastName: string;
+  isSystemAdmin?: boolean;
 }
-
+ 
 interface AuthResponse {
   success?: boolean;
   accessToken?: string;
@@ -29,15 +29,15 @@ interface AuthResponse {
   user?: AuthUser;
   organization?: Organization;
 }
-
+ 
 interface OrganizationsResponse {
   success?: boolean;
   organizations?: Organization[];
   message?: string | string[];
 }
-
+ 
 type AuthMode = 'login' | 'register';
-
+ 
 function getErrorMessage(
   data: { message?: string | string[] },
   fallback: string,
@@ -45,10 +45,10 @@ function getErrorMessage(
   if (Array.isArray(data.message)) {
     return data.message.join(', ');
   }
-
+ 
   return data.message || fallback;
 }
-
+ 
 async function readResponse<T>(response: Response): Promise<T> {
   try {
     return (await response.json()) as T;
@@ -58,10 +58,10 @@ async function readResponse<T>(response: Response): Promise<T> {
     );
   }
 }
-
+ 
 export default function Login() {
   const navigate = useNavigate();
-
+ 
   const [mode, setMode] = useState<AuthMode>('login');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -71,38 +71,89 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
-
-  // Two-factor login state
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+ 
   const [requiresTwoFactor, setRequiresTwoFactor] = useState(false);
   const [challengeToken, setChallengeToken] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
-
+ 
   function changeMode(nextMode: AuthMode) {
     setMode(nextMode);
     setError('');
     setSuccessMessage('');
+    setShowForgotPassword(false);
     setRequiresTwoFactor(false);
     setChallengeToken('');
     setVerificationCode('');
     setPassword('');
   }
-
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+ 
+  async function handleForgotPassword(
+    event: FormEvent<HTMLFormElement>,
+  ) {
     event.preventDefault();
-
+ 
     if (loading) return;
-
+ 
     setError('');
     setSuccessMessage('');
     setLoading(true);
-
+ 
+    try {
+      const response = await fetch(`${API_URL}/auth/forgot-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email.trim().toLowerCase(),
+        }),
+      });
+ 
+      const data = await readResponse<{
+        success?: boolean;
+        message?: string | string[];
+      }>(response);
+ 
+      if (!response.ok) {
+        throw new Error(
+          getErrorMessage(
+            data,
+            'Unable to process your request. Please try again.',
+          ),
+        );
+      }
+ 
+      setSuccessMessage(
+        'If an account exists with this email, password reset instructions will be sent.',
+      );
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Unable to process your request. Please try again.',
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+ 
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+ 
+    if (loading) return;
+ 
+    setError('');
+    setSuccessMessage('');
+    setLoading(true);
+ 
     const isRegister = mode === 'register';
-
+ 
     try {
       const endpoint = isRegister
         ? `${API_URL}/auth/register`
         : `${API_URL}/auth/login`;
-
+ 
       const body = isRegister
         ? {
             firstName: firstName.trim(),
@@ -115,7 +166,7 @@ export default function Login() {
             email: email.trim().toLowerCase(),
             password,
           };
-
+ 
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
@@ -123,9 +174,9 @@ export default function Login() {
         },
         body: JSON.stringify(body),
       });
-
+ 
       const data = await readResponse<AuthResponse>(response);
-
+ 
       if (!response.ok) {
         throw new Error(
           getErrorMessage(
@@ -136,9 +187,7 @@ export default function Login() {
           ),
         );
       }
-
-      // Password accepted, but a second factor is required.
-      // Do not save a session or navigate yet.
+ 
       if (data.requiresTwoFactor && data.challengeToken) {
         setChallengeToken(data.challengeToken);
         setRequiresTwoFactor(true);
@@ -149,7 +198,7 @@ export default function Login() {
         );
         return;
       }
-
+ 
       if (!data.accessToken || !data.user) {
         if (isRegister) {
           setMode('login');
@@ -159,36 +208,36 @@ export default function Login() {
           );
           return;
         }
-
+ 
         throw new Error(
           'The server did not return an access token or user.',
         );
       }
-
+ 
       await finishLogin(data.accessToken, data.user);
     } catch (err) {
       const message =
         err instanceof Error
           ? err.message
           : 'Something went wrong. Please try again.';
-
+ 
       setError(message);
     } finally {
       setLoading(false);
     }
   }
-
+ 
   async function handleVerifyTwoFactor(
     event: FormEvent<HTMLFormElement>,
   ) {
     event.preventDefault();
-
+ 
     if (loading || !challengeToken) return;
-
+ 
     setError('');
     setSuccessMessage('');
     setLoading(true);
-
+ 
     try {
       const response = await fetch(`${API_URL}/auth/login/2fa`, {
         method: 'POST',
@@ -200,52 +249,66 @@ export default function Login() {
           code: verificationCode.trim(),
         }),
       });
-
+ 
       const data = await readResponse<AuthResponse>(response);
-
+ 
       if (!response.ok) {
         throw new Error(
           getErrorMessage(data, 'Invalid or expired verification code.'),
         );
       }
-
+ 
       if (!data.accessToken || !data.user) {
         throw new Error(
           'Verification succeeded without a complete login response.',
         );
       }
-
-      // Clear the temporary challenge before completing login.
+ 
       setChallengeToken('');
       setRequiresTwoFactor(false);
       setVerificationCode('');
-
+ 
       await finishLogin(data.accessToken, data.user);
     } catch (err) {
       const message =
         err instanceof Error
           ? err.message
           : 'Verification failed. Please try again.';
-
+ 
       setError(message);
     } finally {
       setLoading(false);
     }
   }
-
+ 
   async function finishLogin(token: string, user: AuthUser) {
+    try {
+      localStorage.setItem('nexa_token', token);
+      localStorage.setItem('nexa_user', JSON.stringify(user));
+ 
+      if (user.isSystemAdmin === true) {
+        localStorage.removeItem('nexa_organization');
+        navigate('/platform-admin', { replace: true });
+        return;
+      }
+    } catch {
+      throw new Error(
+        'Could not save your session in this browser. Check browser storage settings.',
+      );
+    }
+ 
     const organizationsUrl = `${API_URL}/organizations/my`;
-
+ 
     const organizationsResponse = await fetch(organizationsUrl, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
-
+ 
     const organizationsData =
       await readResponse<OrganizationsResponse>(organizationsResponse);
-
+ 
     if (!organizationsResponse.ok) {
       throw new Error(
         getErrorMessage(
@@ -254,27 +317,23 @@ export default function Login() {
         ),
       );
     }
-
+ 
     const organizations = organizationsData.organizations;
-
+ 
     if (!organizations || organizations.length === 0) {
       throw new Error(
         'Your account has no organization yet. Create or join an organization before continuing.',
       );
     }
-
+ 
     let previousOrganizationId: string | null = null;
-
+ 
     try {
-      const savedOrganization = localStorage.getItem(
-        'nexa_organization',
-      );
-
+      const savedOrganization = localStorage.getItem('nexa_organization');
+ 
       if (savedOrganization) {
-        const parsed = JSON.parse(
-          savedOrganization,
-        ) as Partial<Organization>;
-
+        const parsed = JSON.parse(savedOrganization) as Partial<Organization>;
+ 
         if (typeof parsed.id === 'string') {
           previousOrganizationId = parsed.id;
         }
@@ -282,31 +341,28 @@ export default function Login() {
     } catch {
       previousOrganizationId = null;
     }
-
+ 
     const selectedOrganization =
       organizations.find(
-        (organization) =>
-          organization.id === previousOrganizationId,
+        (organization) => organization.id === previousOrganizationId,
       ) ?? organizations[0];
-
+ 
     try {
-      localStorage.setItem('nexa_token', token);
-      localStorage.setItem('nexa_user', JSON.stringify(user));
       localStorage.setItem(
         'nexa_organization',
         JSON.stringify(selectedOrganization),
       );
     } catch {
       throw new Error(
-        'Could not save your session in this browser. Check browser storage settings.',
+        'Could not save your organization in this browser.',
       );
     }
-
+ 
     navigate('/products', { replace: true });
   }
-
+ 
   const isRegister = mode === 'register';
-
+ 
   return (
     <main className="login-page">
       <section className="login-card">
@@ -314,7 +370,7 @@ export default function Login() {
           <div className="login-logo">N</div>
           <span>NEXA</span>
         </div>
-
+ 
         <div className="login-heading">
           <p className="login-eyebrow">
             {requiresTwoFactor
@@ -323,7 +379,7 @@ export default function Login() {
                 ? 'GET STARTED'
                 : 'WELCOME BACK'}
           </p>
-
+ 
           <h1>
             {requiresTwoFactor
               ? 'Verify your identity'
@@ -331,7 +387,7 @@ export default function Login() {
                 ? 'Create your account'
                 : 'Sign in to NEXA'}
           </h1>
-
+ 
           <p>
             {requiresTwoFactor
               ? 'Enter the six-digit code from your authenticator app.'
@@ -340,8 +396,56 @@ export default function Login() {
                 : 'Manage your business from one place.'}
           </p>
         </div>
-
-        {!requiresTwoFactor ? (
+ 
+        {!requiresTwoFactor && showForgotPassword ? (
+          <form className="login-form" onSubmit={handleForgotPassword}>
+            <p>
+              Enter your email address and we'll send you a password reset
+              link if an account exists.
+            </p>
+ 
+            <label htmlFor="resetEmail">Email address</label>
+            <input
+              id="resetEmail"
+              type="email"
+              placeholder="you@example.com"
+              autoComplete="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              required
+              autoFocus
+            />
+ 
+            {error && (
+              <div className="login-error" role="alert">
+                {error}
+              </div>
+            )}
+ 
+            {successMessage && (
+              <div className="login-success" role="status">
+                {successMessage}
+              </div>
+            )}
+ 
+            <button type="submit" disabled={loading}>
+              {loading ? 'Sending...' : 'Send reset link'}
+            </button>
+ 
+            <button
+              type="button"
+              className="login-secondary-button"
+              disabled={loading}
+              onClick={() => {
+                setShowForgotPassword(false);
+                setError('');
+                setSuccessMessage('');
+              }}
+            >
+              Back to sign in
+            </button>
+          </form>
+        ) : !requiresTwoFactor ? (
           <form className="login-form" onSubmit={handleSubmit}>
             {isRegister && (
               <>
@@ -356,7 +460,7 @@ export default function Login() {
                   required
                   minLength={2}
                 />
-
+ 
                 <label htmlFor="lastName">Last name</label>
                 <input
                   id="lastName"
@@ -368,7 +472,7 @@ export default function Login() {
                   required
                   minLength={2}
                 />
-
+ 
                 <label htmlFor="organizationName">Business name</label>
                 <input
                   id="organizationName"
@@ -383,7 +487,7 @@ export default function Login() {
                 />
               </>
             )}
-
+ 
             <label htmlFor="email">Email address</label>
             <input
               id="email"
@@ -394,7 +498,7 @@ export default function Login() {
               onChange={(event) => setEmail(event.target.value)}
               required
             />
-
+ 
             <label htmlFor="password">Password</label>
             <input
               id="password"
@@ -410,25 +514,41 @@ export default function Login() {
               required
               minLength={isRegister ? 8 : undefined}
             />
-
+ 
             {isRegister && (
               <p className="login-hint">
                 Use at least 8 characters for your password.
               </p>
             )}
-
+ 
+            {!isRegister && (
+              <div className="login-forgot-password">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowForgotPassword(true);
+                    setError('');
+                    setSuccessMessage('');
+                  }}
+                  disabled={loading}
+                >
+                  Forgot password?
+                </button>
+              </div>
+            )}
+ 
             {error && (
               <div className="login-error" role="alert">
                 {error}
               </div>
             )}
-
+ 
             {successMessage && (
               <div className="login-success" role="status">
                 {successMessage}
               </div>
             )}
-
+ 
             <button type="submit" disabled={loading}>
               {loading
                 ? isRegister
@@ -447,7 +567,7 @@ export default function Login() {
             <label htmlFor="verificationCode">
               Authentication code
             </label>
-
+ 
             <input
               id="verificationCode"
               type="text"
@@ -466,30 +586,30 @@ export default function Login() {
               pattern="[0-9]{6}"
               autoFocus
             />
-
+ 
             <p className="login-hint">
               Open your authenticator app and enter the current code.
             </p>
-
+ 
             {error && (
               <div className="login-error" role="alert">
                 {error}
               </div>
             )}
-
+ 
             {successMessage && (
               <div className="login-success" role="status">
                 {successMessage}
               </div>
             )}
-
+ 
             <button
               type="submit"
               disabled={loading || verificationCode.length !== 6}
             >
               {loading ? 'Verifying...' : 'Verify and sign in'}
             </button>
-
+ 
             <button
               type="button"
               className="login-secondary-button"
@@ -507,7 +627,7 @@ export default function Login() {
             </button>
           </form>
         )}
-
+ 
         {!requiresTwoFactor && (
           <div className="login-switch">
             {isRegister ? (
@@ -535,7 +655,7 @@ export default function Login() {
             )}
           </div>
         )}
-
+ 
         <p className="login-footer">
           Secure access to your business workspace.
         </p>
@@ -543,3 +663,4 @@ export default function Login() {
     </main>
   );
 }
+ 

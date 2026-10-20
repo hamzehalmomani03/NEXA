@@ -89,6 +89,7 @@ describe('OrganizationsService', () => {
             {
               id: 'membership-123',
               role: OrganizationRole.OWNER,
+              status: 'ACTIVE',
               createdAt: joinedAt,
               user: {
                 id: userId,
@@ -123,6 +124,7 @@ describe('OrganizationsService', () => {
             {
               id: 'membership-123',
               role: OrganizationRole.OWNER,
+              status: 'ACTIVE',
               joinedAt,
               user: {
                 id: userId,
@@ -157,6 +159,7 @@ describe('OrganizationsService', () => {
                 select: {
                   id: true,
                   role: true,
+                  status: true,
                   createdAt: true,
                   user: {
                     select: {

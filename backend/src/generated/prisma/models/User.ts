@@ -44,6 +44,8 @@ export type UserMinAggregateOutputType = {
   isSystemAdmin: boolean | null
   failedLoginAttempts: number | null
   lockedUntil: Date | null
+  passwordResetTokenHash: string | null
+  passwordResetExpiresAt: Date | null
   twoFactorEnabled: boolean | null
   twoFactorSecretEncrypted: string | null
   twoFactorPendingSecretEncrypted: string | null
@@ -61,6 +63,8 @@ export type UserMaxAggregateOutputType = {
   isSystemAdmin: boolean | null
   failedLoginAttempts: number | null
   lockedUntil: Date | null
+  passwordResetTokenHash: string | null
+  passwordResetExpiresAt: Date | null
   twoFactorEnabled: boolean | null
   twoFactorSecretEncrypted: string | null
   twoFactorPendingSecretEncrypted: string | null
@@ -78,6 +82,8 @@ export type UserCountAggregateOutputType = {
   isSystemAdmin: number
   failedLoginAttempts: number
   lockedUntil: number
+  passwordResetTokenHash: number
+  passwordResetExpiresAt: number
   twoFactorEnabled: number
   twoFactorSecretEncrypted: number
   twoFactorPendingSecretEncrypted: number
@@ -106,6 +112,8 @@ export type UserMinAggregateInputType = {
   isSystemAdmin?: true
   failedLoginAttempts?: true
   lockedUntil?: true
+  passwordResetTokenHash?: true
+  passwordResetExpiresAt?: true
   twoFactorEnabled?: true
   twoFactorSecretEncrypted?: true
   twoFactorPendingSecretEncrypted?: true
@@ -123,6 +131,8 @@ export type UserMaxAggregateInputType = {
   isSystemAdmin?: true
   failedLoginAttempts?: true
   lockedUntil?: true
+  passwordResetTokenHash?: true
+  passwordResetExpiresAt?: true
   twoFactorEnabled?: true
   twoFactorSecretEncrypted?: true
   twoFactorPendingSecretEncrypted?: true
@@ -140,6 +150,8 @@ export type UserCountAggregateInputType = {
   isSystemAdmin?: true
   failedLoginAttempts?: true
   lockedUntil?: true
+  passwordResetTokenHash?: true
+  passwordResetExpiresAt?: true
   twoFactorEnabled?: true
   twoFactorSecretEncrypted?: true
   twoFactorPendingSecretEncrypted?: true
@@ -245,6 +257,8 @@ export type UserGroupByOutputType = {
   isSystemAdmin: boolean
   failedLoginAttempts: number
   lockedUntil: Date | null
+  passwordResetTokenHash: string | null
+  passwordResetExpiresAt: Date | null
   twoFactorEnabled: boolean
   twoFactorSecretEncrypted: string | null
   twoFactorPendingSecretEncrypted: string | null
@@ -286,6 +300,8 @@ export type UserWhereInput = {
   isSystemAdmin?: Prisma.BoolFilter<"User"> | boolean
   failedLoginAttempts?: Prisma.IntFilter<"User"> | number
   lockedUntil?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  passwordResetTokenHash?: Prisma.StringNullableFilter<"User"> | string | null
+  passwordResetExpiresAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   twoFactorEnabled?: Prisma.BoolFilter<"User"> | boolean
   twoFactorSecretEncrypted?: Prisma.StringNullableFilter<"User"> | string | null
   twoFactorPendingSecretEncrypted?: Prisma.StringNullableFilter<"User"> | string | null
@@ -307,6 +323,8 @@ export type UserOrderByWithRelationInput = {
   isSystemAdmin?: Prisma.SortOrder
   failedLoginAttempts?: Prisma.SortOrder
   lockedUntil?: Prisma.SortOrderInput | Prisma.SortOrder
+  passwordResetTokenHash?: Prisma.SortOrderInput | Prisma.SortOrder
+  passwordResetExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
   twoFactorEnabled?: Prisma.SortOrder
   twoFactorSecretEncrypted?: Prisma.SortOrderInput | Prisma.SortOrder
   twoFactorPendingSecretEncrypted?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -331,6 +349,8 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   isSystemAdmin?: Prisma.BoolFilter<"User"> | boolean
   failedLoginAttempts?: Prisma.IntFilter<"User"> | number
   lockedUntil?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  passwordResetTokenHash?: Prisma.StringNullableFilter<"User"> | string | null
+  passwordResetExpiresAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   twoFactorEnabled?: Prisma.BoolFilter<"User"> | boolean
   twoFactorSecretEncrypted?: Prisma.StringNullableFilter<"User"> | string | null
   twoFactorPendingSecretEncrypted?: Prisma.StringNullableFilter<"User"> | string | null
@@ -352,6 +372,8 @@ export type UserOrderByWithAggregationInput = {
   isSystemAdmin?: Prisma.SortOrder
   failedLoginAttempts?: Prisma.SortOrder
   lockedUntil?: Prisma.SortOrderInput | Prisma.SortOrder
+  passwordResetTokenHash?: Prisma.SortOrderInput | Prisma.SortOrder
+  passwordResetExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
   twoFactorEnabled?: Prisma.SortOrder
   twoFactorSecretEncrypted?: Prisma.SortOrderInput | Prisma.SortOrder
   twoFactorPendingSecretEncrypted?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -378,6 +400,8 @@ export type UserScalarWhereWithAggregatesInput = {
   isSystemAdmin?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
   failedLoginAttempts?: Prisma.IntWithAggregatesFilter<"User"> | number
   lockedUntil?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
+  passwordResetTokenHash?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  passwordResetExpiresAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   twoFactorEnabled?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
   twoFactorSecretEncrypted?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   twoFactorPendingSecretEncrypted?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
@@ -396,6 +420,8 @@ export type UserCreateInput = {
   isSystemAdmin?: boolean
   failedLoginAttempts?: number
   lockedUntil?: Date | string | null
+  passwordResetTokenHash?: string | null
+  passwordResetExpiresAt?: Date | string | null
   twoFactorEnabled?: boolean
   twoFactorSecretEncrypted?: string | null
   twoFactorPendingSecretEncrypted?: string | null
@@ -417,6 +443,8 @@ export type UserUncheckedCreateInput = {
   isSystemAdmin?: boolean
   failedLoginAttempts?: number
   lockedUntil?: Date | string | null
+  passwordResetTokenHash?: string | null
+  passwordResetExpiresAt?: Date | string | null
   twoFactorEnabled?: boolean
   twoFactorSecretEncrypted?: string | null
   twoFactorPendingSecretEncrypted?: string | null
@@ -438,6 +466,8 @@ export type UserUpdateInput = {
   isSystemAdmin?: Prisma.BoolFieldUpdateOperationsInput | boolean
   failedLoginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordResetTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   twoFactorEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   twoFactorSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   twoFactorPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -459,6 +489,8 @@ export type UserUncheckedUpdateInput = {
   isSystemAdmin?: Prisma.BoolFieldUpdateOperationsInput | boolean
   failedLoginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordResetTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   twoFactorEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   twoFactorSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   twoFactorPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -480,6 +512,8 @@ export type UserCreateManyInput = {
   isSystemAdmin?: boolean
   failedLoginAttempts?: number
   lockedUntil?: Date | string | null
+  passwordResetTokenHash?: string | null
+  passwordResetExpiresAt?: Date | string | null
   twoFactorEnabled?: boolean
   twoFactorSecretEncrypted?: string | null
   twoFactorPendingSecretEncrypted?: string | null
@@ -498,6 +532,8 @@ export type UserUpdateManyMutationInput = {
   isSystemAdmin?: Prisma.BoolFieldUpdateOperationsInput | boolean
   failedLoginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordResetTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   twoFactorEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   twoFactorSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   twoFactorPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -516,6 +552,8 @@ export type UserUncheckedUpdateManyInput = {
   isSystemAdmin?: Prisma.BoolFieldUpdateOperationsInput | boolean
   failedLoginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordResetTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   twoFactorEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   twoFactorSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   twoFactorPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -542,6 +580,8 @@ export type UserCountOrderByAggregateInput = {
   isSystemAdmin?: Prisma.SortOrder
   failedLoginAttempts?: Prisma.SortOrder
   lockedUntil?: Prisma.SortOrder
+  passwordResetTokenHash?: Prisma.SortOrder
+  passwordResetExpiresAt?: Prisma.SortOrder
   twoFactorEnabled?: Prisma.SortOrder
   twoFactorSecretEncrypted?: Prisma.SortOrder
   twoFactorPendingSecretEncrypted?: Prisma.SortOrder
@@ -564,6 +604,8 @@ export type UserMaxOrderByAggregateInput = {
   isSystemAdmin?: Prisma.SortOrder
   failedLoginAttempts?: Prisma.SortOrder
   lockedUntil?: Prisma.SortOrder
+  passwordResetTokenHash?: Prisma.SortOrder
+  passwordResetExpiresAt?: Prisma.SortOrder
   twoFactorEnabled?: Prisma.SortOrder
   twoFactorSecretEncrypted?: Prisma.SortOrder
   twoFactorPendingSecretEncrypted?: Prisma.SortOrder
@@ -581,6 +623,8 @@ export type UserMinOrderByAggregateInput = {
   isSystemAdmin?: Prisma.SortOrder
   failedLoginAttempts?: Prisma.SortOrder
   lockedUntil?: Prisma.SortOrder
+  passwordResetTokenHash?: Prisma.SortOrder
+  passwordResetExpiresAt?: Prisma.SortOrder
   twoFactorEnabled?: Prisma.SortOrder
   twoFactorSecretEncrypted?: Prisma.SortOrder
   twoFactorPendingSecretEncrypted?: Prisma.SortOrder
@@ -686,6 +730,8 @@ export type UserCreateWithoutMembershipsInput = {
   isSystemAdmin?: boolean
   failedLoginAttempts?: number
   lockedUntil?: Date | string | null
+  passwordResetTokenHash?: string | null
+  passwordResetExpiresAt?: Date | string | null
   twoFactorEnabled?: boolean
   twoFactorSecretEncrypted?: string | null
   twoFactorPendingSecretEncrypted?: string | null
@@ -706,6 +752,8 @@ export type UserUncheckedCreateWithoutMembershipsInput = {
   isSystemAdmin?: boolean
   failedLoginAttempts?: number
   lockedUntil?: Date | string | null
+  passwordResetTokenHash?: string | null
+  passwordResetExpiresAt?: Date | string | null
   twoFactorEnabled?: boolean
   twoFactorSecretEncrypted?: string | null
   twoFactorPendingSecretEncrypted?: string | null
@@ -742,6 +790,8 @@ export type UserUpdateWithoutMembershipsInput = {
   isSystemAdmin?: Prisma.BoolFieldUpdateOperationsInput | boolean
   failedLoginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordResetTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   twoFactorEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   twoFactorSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   twoFactorPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -762,6 +812,8 @@ export type UserUncheckedUpdateWithoutMembershipsInput = {
   isSystemAdmin?: Prisma.BoolFieldUpdateOperationsInput | boolean
   failedLoginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordResetTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   twoFactorEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   twoFactorSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   twoFactorPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -782,6 +834,8 @@ export type UserCreateWithoutInventoryMovementsInput = {
   isSystemAdmin?: boolean
   failedLoginAttempts?: number
   lockedUntil?: Date | string | null
+  passwordResetTokenHash?: string | null
+  passwordResetExpiresAt?: Date | string | null
   twoFactorEnabled?: boolean
   twoFactorSecretEncrypted?: string | null
   twoFactorPendingSecretEncrypted?: string | null
@@ -802,6 +856,8 @@ export type UserUncheckedCreateWithoutInventoryMovementsInput = {
   isSystemAdmin?: boolean
   failedLoginAttempts?: number
   lockedUntil?: Date | string | null
+  passwordResetTokenHash?: string | null
+  passwordResetExpiresAt?: Date | string | null
   twoFactorEnabled?: boolean
   twoFactorSecretEncrypted?: string | null
   twoFactorPendingSecretEncrypted?: string | null
@@ -838,6 +894,8 @@ export type UserUpdateWithoutInventoryMovementsInput = {
   isSystemAdmin?: Prisma.BoolFieldUpdateOperationsInput | boolean
   failedLoginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordResetTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   twoFactorEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   twoFactorSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   twoFactorPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -858,6 +916,8 @@ export type UserUncheckedUpdateWithoutInventoryMovementsInput = {
   isSystemAdmin?: Prisma.BoolFieldUpdateOperationsInput | boolean
   failedLoginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordResetTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   twoFactorEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   twoFactorSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   twoFactorPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -878,6 +938,8 @@ export type UserCreateWithoutSalesInput = {
   isSystemAdmin?: boolean
   failedLoginAttempts?: number
   lockedUntil?: Date | string | null
+  passwordResetTokenHash?: string | null
+  passwordResetExpiresAt?: Date | string | null
   twoFactorEnabled?: boolean
   twoFactorSecretEncrypted?: string | null
   twoFactorPendingSecretEncrypted?: string | null
@@ -898,6 +960,8 @@ export type UserUncheckedCreateWithoutSalesInput = {
   isSystemAdmin?: boolean
   failedLoginAttempts?: number
   lockedUntil?: Date | string | null
+  passwordResetTokenHash?: string | null
+  passwordResetExpiresAt?: Date | string | null
   twoFactorEnabled?: boolean
   twoFactorSecretEncrypted?: string | null
   twoFactorPendingSecretEncrypted?: string | null
@@ -934,6 +998,8 @@ export type UserUpdateWithoutSalesInput = {
   isSystemAdmin?: Prisma.BoolFieldUpdateOperationsInput | boolean
   failedLoginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordResetTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   twoFactorEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   twoFactorSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   twoFactorPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -954,6 +1020,8 @@ export type UserUncheckedUpdateWithoutSalesInput = {
   isSystemAdmin?: Prisma.BoolFieldUpdateOperationsInput | boolean
   failedLoginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordResetTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   twoFactorEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   twoFactorSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   twoFactorPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1023,6 +1091,8 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   isSystemAdmin?: boolean
   failedLoginAttempts?: boolean
   lockedUntil?: boolean
+  passwordResetTokenHash?: boolean
+  passwordResetExpiresAt?: boolean
   twoFactorEnabled?: boolean
   twoFactorSecretEncrypted?: boolean
   twoFactorPendingSecretEncrypted?: boolean
@@ -1045,6 +1115,8 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   isSystemAdmin?: boolean
   failedLoginAttempts?: boolean
   lockedUntil?: boolean
+  passwordResetTokenHash?: boolean
+  passwordResetExpiresAt?: boolean
   twoFactorEnabled?: boolean
   twoFactorSecretEncrypted?: boolean
   twoFactorPendingSecretEncrypted?: boolean
@@ -1063,6 +1135,8 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   isSystemAdmin?: boolean
   failedLoginAttempts?: boolean
   lockedUntil?: boolean
+  passwordResetTokenHash?: boolean
+  passwordResetExpiresAt?: boolean
   twoFactorEnabled?: boolean
   twoFactorSecretEncrypted?: boolean
   twoFactorPendingSecretEncrypted?: boolean
@@ -1081,6 +1155,8 @@ export type UserSelectScalar = {
   isSystemAdmin?: boolean
   failedLoginAttempts?: boolean
   lockedUntil?: boolean
+  passwordResetTokenHash?: boolean
+  passwordResetExpiresAt?: boolean
   twoFactorEnabled?: boolean
   twoFactorSecretEncrypted?: boolean
   twoFactorPendingSecretEncrypted?: boolean
@@ -1089,7 +1165,7 @@ export type UserSelectScalar = {
   updatedAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "passwordHash" | "firstName" | "lastName" | "isActive" | "isSystemAdmin" | "failedLoginAttempts" | "lockedUntil" | "twoFactorEnabled" | "twoFactorSecretEncrypted" | "twoFactorPendingSecretEncrypted" | "twoFactorRecoveryCodeHashes" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "passwordHash" | "firstName" | "lastName" | "isActive" | "isSystemAdmin" | "failedLoginAttempts" | "lockedUntil" | "passwordResetTokenHash" | "passwordResetExpiresAt" | "twoFactorEnabled" | "twoFactorSecretEncrypted" | "twoFactorPendingSecretEncrypted" | "twoFactorRecoveryCodeHashes" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   memberships?: boolean | Prisma.User$membershipsArgs<ExtArgs>
   inventoryMovements?: boolean | Prisma.User$inventoryMovementsArgs<ExtArgs>
@@ -1116,6 +1192,8 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     isSystemAdmin: boolean
     failedLoginAttempts: number
     lockedUntil: Date | null
+    passwordResetTokenHash: string | null
+    passwordResetExpiresAt: Date | null
     twoFactorEnabled: boolean
     twoFactorSecretEncrypted: string | null
     twoFactorPendingSecretEncrypted: string | null
@@ -1557,6 +1635,8 @@ export interface UserFieldRefs {
   readonly isSystemAdmin: Prisma.FieldRef<"User", 'Boolean'>
   readonly failedLoginAttempts: Prisma.FieldRef<"User", 'Int'>
   readonly lockedUntil: Prisma.FieldRef<"User", 'DateTime'>
+  readonly passwordResetTokenHash: Prisma.FieldRef<"User", 'String'>
+  readonly passwordResetExpiresAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly twoFactorEnabled: Prisma.FieldRef<"User", 'Boolean'>
   readonly twoFactorSecretEncrypted: Prisma.FieldRef<"User", 'String'>
   readonly twoFactorPendingSecretEncrypted: Prisma.FieldRef<"User", 'String'>

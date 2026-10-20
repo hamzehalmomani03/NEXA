@@ -142,4 +142,43 @@ export class AuthController {
       body.code,
     );
   }
+  
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { limit: 3, ttl: 60_000 } })
+  @Post('forgot-password')
+  forgotPassword(@Body() body: { email: string }) {
+    if (
+      typeof body?.email !== 'string' ||
+      body.email.length > 254 ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email.trim())
+    ) {
+      throw new BadRequestException('A valid email is required');
+    }
+
+    return this.authService.forgotPassword(body.email);
+  }
+
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  @Post('reset-password')
+  resetPassword(
+    @Body() body: { token: string; newPassword: string },
+  ) {
+    if (
+      typeof body?.token !== 'string' ||
+      typeof body?.newPassword !== 'string' ||
+      body.token.length > 128 ||
+      body.newPassword.length > 128
+    ) {
+      throw new BadRequestException(
+        'A valid token and new password are required',
+      );
+    }
+
+    return this.authService.resetPassword(
+      body.token,
+      body.newPassword,
+    );
+  }
+
 }

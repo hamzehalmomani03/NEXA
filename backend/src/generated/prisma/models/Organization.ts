@@ -30,6 +30,7 @@ export type OrganizationMinAggregateOutputType = {
   slug: string | null
   createdAt: Date | null
   updatedAt: Date | null
+  isActive: boolean | null
 }
 
 export type OrganizationMaxAggregateOutputType = {
@@ -38,6 +39,7 @@ export type OrganizationMaxAggregateOutputType = {
   slug: string | null
   createdAt: Date | null
   updatedAt: Date | null
+  isActive: boolean | null
 }
 
 export type OrganizationCountAggregateOutputType = {
@@ -46,6 +48,7 @@ export type OrganizationCountAggregateOutputType = {
   slug: number
   createdAt: number
   updatedAt: number
+  isActive: number
   _all: number
 }
 
@@ -56,6 +59,7 @@ export type OrganizationMinAggregateInputType = {
   slug?: true
   createdAt?: true
   updatedAt?: true
+  isActive?: true
 }
 
 export type OrganizationMaxAggregateInputType = {
@@ -64,6 +68,7 @@ export type OrganizationMaxAggregateInputType = {
   slug?: true
   createdAt?: true
   updatedAt?: true
+  isActive?: true
 }
 
 export type OrganizationCountAggregateInputType = {
@@ -72,6 +77,7 @@ export type OrganizationCountAggregateInputType = {
   slug?: true
   createdAt?: true
   updatedAt?: true
+  isActive?: true
   _all?: true
 }
 
@@ -153,6 +159,7 @@ export type OrganizationGroupByOutputType = {
   slug: string
   createdAt: Date
   updatedAt: Date
+  isActive: boolean
   _count: OrganizationCountAggregateOutputType | null
   _min: OrganizationMinAggregateOutputType | null
   _max: OrganizationMaxAggregateOutputType | null
@@ -182,6 +189,7 @@ export type OrganizationWhereInput = {
   slug?: Prisma.StringFilter<"Organization"> | string
   createdAt?: Prisma.DateTimeFilter<"Organization"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Organization"> | Date | string
+  isActive?: Prisma.BoolFilter<"Organization"> | boolean
   members?: Prisma.OrganizationMemberListRelationFilter
   products?: Prisma.ProductListRelationFilter
   inventoryMovements?: Prisma.InventoryMovementListRelationFilter
@@ -195,6 +203,7 @@ export type OrganizationOrderByWithRelationInput = {
   slug?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
   members?: Prisma.OrganizationMemberOrderByRelationAggregateInput
   products?: Prisma.ProductOrderByRelationAggregateInput
   inventoryMovements?: Prisma.InventoryMovementOrderByRelationAggregateInput
@@ -211,6 +220,7 @@ export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
   name?: Prisma.StringFilter<"Organization"> | string
   createdAt?: Prisma.DateTimeFilter<"Organization"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Organization"> | Date | string
+  isActive?: Prisma.BoolFilter<"Organization"> | boolean
   members?: Prisma.OrganizationMemberListRelationFilter
   products?: Prisma.ProductListRelationFilter
   inventoryMovements?: Prisma.InventoryMovementListRelationFilter
@@ -224,6 +234,7 @@ export type OrganizationOrderByWithAggregationInput = {
   slug?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
   _count?: Prisma.OrganizationCountOrderByAggregateInput
   _max?: Prisma.OrganizationMaxOrderByAggregateInput
   _min?: Prisma.OrganizationMinOrderByAggregateInput
@@ -238,6 +249,7 @@ export type OrganizationScalarWhereWithAggregatesInput = {
   slug?: Prisma.StringWithAggregatesFilter<"Organization"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Organization"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Organization"> | Date | string
+  isActive?: Prisma.BoolWithAggregatesFilter<"Organization"> | boolean
 }
 
 export type OrganizationCreateInput = {
@@ -246,6 +258,7 @@ export type OrganizationCreateInput = {
   slug: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  isActive?: boolean
   members?: Prisma.OrganizationMemberCreateNestedManyWithoutOrganizationInput
   products?: Prisma.ProductCreateNestedManyWithoutOrganizationInput
   inventoryMovements?: Prisma.InventoryMovementCreateNestedManyWithoutOrganizationInput
@@ -259,6 +272,7 @@ export type OrganizationUncheckedCreateInput = {
   slug: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  isActive?: boolean
   members?: Prisma.OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
   products?: Prisma.ProductUncheckedCreateNestedManyWithoutOrganizationInput
   inventoryMovements?: Prisma.InventoryMovementUncheckedCreateNestedManyWithoutOrganizationInput
@@ -272,6 +286,7 @@ export type OrganizationUpdateInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   members?: Prisma.OrganizationMemberUpdateManyWithoutOrganizationNestedInput
   products?: Prisma.ProductUpdateManyWithoutOrganizationNestedInput
   inventoryMovements?: Prisma.InventoryMovementUpdateManyWithoutOrganizationNestedInput
@@ -285,6 +300,7 @@ export type OrganizationUncheckedUpdateInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   members?: Prisma.OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
   products?: Prisma.ProductUncheckedUpdateManyWithoutOrganizationNestedInput
   inventoryMovements?: Prisma.InventoryMovementUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -298,6 +314,7 @@ export type OrganizationCreateManyInput = {
   slug: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  isActive?: boolean
 }
 
 export type OrganizationUpdateManyMutationInput = {
@@ -306,6 +323,7 @@ export type OrganizationUpdateManyMutationInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type OrganizationUncheckedUpdateManyInput = {
@@ -314,6 +332,7 @@ export type OrganizationUncheckedUpdateManyInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type OrganizationCountOrderByAggregateInput = {
@@ -322,6 +341,7 @@ export type OrganizationCountOrderByAggregateInput = {
   slug?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
 }
 
 export type OrganizationMaxOrderByAggregateInput = {
@@ -330,6 +350,7 @@ export type OrganizationMaxOrderByAggregateInput = {
   slug?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
 }
 
 export type OrganizationMinOrderByAggregateInput = {
@@ -338,6 +359,7 @@ export type OrganizationMinOrderByAggregateInput = {
   slug?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
 }
 
 export type OrganizationScalarRelationFilter = {
@@ -421,6 +443,7 @@ export type OrganizationCreateWithoutMembersInput = {
   slug: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  isActive?: boolean
   products?: Prisma.ProductCreateNestedManyWithoutOrganizationInput
   inventoryMovements?: Prisma.InventoryMovementCreateNestedManyWithoutOrganizationInput
   sales?: Prisma.SaleCreateNestedManyWithoutOrganizationInput
@@ -433,6 +456,7 @@ export type OrganizationUncheckedCreateWithoutMembersInput = {
   slug: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  isActive?: boolean
   products?: Prisma.ProductUncheckedCreateNestedManyWithoutOrganizationInput
   inventoryMovements?: Prisma.InventoryMovementUncheckedCreateNestedManyWithoutOrganizationInput
   sales?: Prisma.SaleUncheckedCreateNestedManyWithoutOrganizationInput
@@ -461,6 +485,7 @@ export type OrganizationUpdateWithoutMembersInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   products?: Prisma.ProductUpdateManyWithoutOrganizationNestedInput
   inventoryMovements?: Prisma.InventoryMovementUpdateManyWithoutOrganizationNestedInput
   sales?: Prisma.SaleUpdateManyWithoutOrganizationNestedInput
@@ -473,6 +498,7 @@ export type OrganizationUncheckedUpdateWithoutMembersInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   products?: Prisma.ProductUncheckedUpdateManyWithoutOrganizationNestedInput
   inventoryMovements?: Prisma.InventoryMovementUncheckedUpdateManyWithoutOrganizationNestedInput
   sales?: Prisma.SaleUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -485,6 +511,7 @@ export type OrganizationCreateWithoutProductsInput = {
   slug: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  isActive?: boolean
   members?: Prisma.OrganizationMemberCreateNestedManyWithoutOrganizationInput
   inventoryMovements?: Prisma.InventoryMovementCreateNestedManyWithoutOrganizationInput
   sales?: Prisma.SaleCreateNestedManyWithoutOrganizationInput
@@ -497,6 +524,7 @@ export type OrganizationUncheckedCreateWithoutProductsInput = {
   slug: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  isActive?: boolean
   members?: Prisma.OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
   inventoryMovements?: Prisma.InventoryMovementUncheckedCreateNestedManyWithoutOrganizationInput
   sales?: Prisma.SaleUncheckedCreateNestedManyWithoutOrganizationInput
@@ -525,6 +553,7 @@ export type OrganizationUpdateWithoutProductsInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   members?: Prisma.OrganizationMemberUpdateManyWithoutOrganizationNestedInput
   inventoryMovements?: Prisma.InventoryMovementUpdateManyWithoutOrganizationNestedInput
   sales?: Prisma.SaleUpdateManyWithoutOrganizationNestedInput
@@ -537,6 +566,7 @@ export type OrganizationUncheckedUpdateWithoutProductsInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   members?: Prisma.OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
   inventoryMovements?: Prisma.InventoryMovementUncheckedUpdateManyWithoutOrganizationNestedInput
   sales?: Prisma.SaleUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -549,6 +579,7 @@ export type OrganizationCreateWithoutInventoryMovementsInput = {
   slug: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  isActive?: boolean
   members?: Prisma.OrganizationMemberCreateNestedManyWithoutOrganizationInput
   products?: Prisma.ProductCreateNestedManyWithoutOrganizationInput
   sales?: Prisma.SaleCreateNestedManyWithoutOrganizationInput
@@ -561,6 +592,7 @@ export type OrganizationUncheckedCreateWithoutInventoryMovementsInput = {
   slug: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  isActive?: boolean
   members?: Prisma.OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
   products?: Prisma.ProductUncheckedCreateNestedManyWithoutOrganizationInput
   sales?: Prisma.SaleUncheckedCreateNestedManyWithoutOrganizationInput
@@ -589,6 +621,7 @@ export type OrganizationUpdateWithoutInventoryMovementsInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   members?: Prisma.OrganizationMemberUpdateManyWithoutOrganizationNestedInput
   products?: Prisma.ProductUpdateManyWithoutOrganizationNestedInput
   sales?: Prisma.SaleUpdateManyWithoutOrganizationNestedInput
@@ -601,6 +634,7 @@ export type OrganizationUncheckedUpdateWithoutInventoryMovementsInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   members?: Prisma.OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
   products?: Prisma.ProductUncheckedUpdateManyWithoutOrganizationNestedInput
   sales?: Prisma.SaleUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -613,6 +647,7 @@ export type OrganizationCreateWithoutSalesInput = {
   slug: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  isActive?: boolean
   members?: Prisma.OrganizationMemberCreateNestedManyWithoutOrganizationInput
   products?: Prisma.ProductCreateNestedManyWithoutOrganizationInput
   inventoryMovements?: Prisma.InventoryMovementCreateNestedManyWithoutOrganizationInput
@@ -625,6 +660,7 @@ export type OrganizationUncheckedCreateWithoutSalesInput = {
   slug: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  isActive?: boolean
   members?: Prisma.OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
   products?: Prisma.ProductUncheckedCreateNestedManyWithoutOrganizationInput
   inventoryMovements?: Prisma.InventoryMovementUncheckedCreateNestedManyWithoutOrganizationInput
@@ -653,6 +689,7 @@ export type OrganizationUpdateWithoutSalesInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   members?: Prisma.OrganizationMemberUpdateManyWithoutOrganizationNestedInput
   products?: Prisma.ProductUpdateManyWithoutOrganizationNestedInput
   inventoryMovements?: Prisma.InventoryMovementUpdateManyWithoutOrganizationNestedInput
@@ -665,6 +702,7 @@ export type OrganizationUncheckedUpdateWithoutSalesInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   members?: Prisma.OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
   products?: Prisma.ProductUncheckedUpdateManyWithoutOrganizationNestedInput
   inventoryMovements?: Prisma.InventoryMovementUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -677,6 +715,7 @@ export type OrganizationCreateWithoutCustomersInput = {
   slug: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  isActive?: boolean
   members?: Prisma.OrganizationMemberCreateNestedManyWithoutOrganizationInput
   products?: Prisma.ProductCreateNestedManyWithoutOrganizationInput
   inventoryMovements?: Prisma.InventoryMovementCreateNestedManyWithoutOrganizationInput
@@ -689,6 +728,7 @@ export type OrganizationUncheckedCreateWithoutCustomersInput = {
   slug: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  isActive?: boolean
   members?: Prisma.OrganizationMemberUncheckedCreateNestedManyWithoutOrganizationInput
   products?: Prisma.ProductUncheckedCreateNestedManyWithoutOrganizationInput
   inventoryMovements?: Prisma.InventoryMovementUncheckedCreateNestedManyWithoutOrganizationInput
@@ -717,6 +757,7 @@ export type OrganizationUpdateWithoutCustomersInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   members?: Prisma.OrganizationMemberUpdateManyWithoutOrganizationNestedInput
   products?: Prisma.ProductUpdateManyWithoutOrganizationNestedInput
   inventoryMovements?: Prisma.InventoryMovementUpdateManyWithoutOrganizationNestedInput
@@ -729,6 +770,7 @@ export type OrganizationUncheckedUpdateWithoutCustomersInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   members?: Prisma.OrganizationMemberUncheckedUpdateManyWithoutOrganizationNestedInput
   products?: Prisma.ProductUncheckedUpdateManyWithoutOrganizationNestedInput
   inventoryMovements?: Prisma.InventoryMovementUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -808,6 +850,7 @@ export type OrganizationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   slug?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  isActive?: boolean
   members?: boolean | Prisma.Organization$membersArgs<ExtArgs>
   products?: boolean | Prisma.Organization$productsArgs<ExtArgs>
   inventoryMovements?: boolean | Prisma.Organization$inventoryMovementsArgs<ExtArgs>
@@ -822,6 +865,7 @@ export type OrganizationSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   slug?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  isActive?: boolean
 }, ExtArgs["result"]["organization"]>
 
 export type OrganizationSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -830,6 +874,7 @@ export type OrganizationSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   slug?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  isActive?: boolean
 }, ExtArgs["result"]["organization"]>
 
 export type OrganizationSelectScalar = {
@@ -838,9 +883,10 @@ export type OrganizationSelectScalar = {
   slug?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  isActive?: boolean
 }
 
-export type OrganizationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "slug" | "createdAt" | "updatedAt", ExtArgs["result"]["organization"]>
+export type OrganizationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "slug" | "createdAt" | "updatedAt" | "isActive", ExtArgs["result"]["organization"]>
 export type OrganizationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   members?: boolean | Prisma.Organization$membersArgs<ExtArgs>
   products?: boolean | Prisma.Organization$productsArgs<ExtArgs>
@@ -867,6 +913,7 @@ export type $OrganizationPayload<ExtArgs extends runtime.Types.Extensions.Intern
     slug: string
     createdAt: Date
     updatedAt: Date
+    isActive: boolean
   }, ExtArgs["result"]["organization"]>
   composites: {}
 }
@@ -1300,6 +1347,7 @@ export interface OrganizationFieldRefs {
   readonly slug: Prisma.FieldRef<"Organization", 'String'>
   readonly createdAt: Prisma.FieldRef<"Organization", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Organization", 'DateTime'>
+  readonly isActive: Prisma.FieldRef<"Organization", 'Boolean'>
 }
     
 

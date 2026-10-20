@@ -53,6 +53,7 @@ describe('JwtStrategy', () => {
       strategy.validate({
         sub: 'user-1',
         email: 'member@nexa.local',
+        purpose: 'access',
       }),
     ).resolves.toEqual({
       userId: 'user-1',
@@ -75,6 +76,7 @@ describe('JwtStrategy', () => {
       strategy.validate({
         sub: 'user-1',
         email: 'member@nexa.local',
+        purpose: 'access',
       }),
     ).rejects.toBeInstanceOf(UnauthorizedException);
   });
@@ -86,6 +88,7 @@ describe('JwtStrategy', () => {
       strategy.validate({
         sub: 'missing-user',
         email: 'member@nexa.local',
+        purpose: 'access',
       }),
     ).rejects.toBeInstanceOf(UnauthorizedException);
   });
@@ -103,6 +106,7 @@ describe('JwtStrategy', () => {
       strategy.validate({
         sub: 'user-1',
         email: 'wrong@nexa.local',
+        purpose: 'access',
       }),
     ).rejects.toBeInstanceOf(UnauthorizedException);
   });

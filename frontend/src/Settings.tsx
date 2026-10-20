@@ -67,7 +67,38 @@ export default function Settings() {
   const [activeSection, setActiveSection] =
     useState<SettingsSection>('General');
 
-  const [settings, setSettings] = useState<SettingsData>(initialSettings);
+  
+const [settings, setSettings] = useState<SettingsData>(() => {
+  try {
+    const storedUser = localStorage.getItem('nexa_user');
+
+    if (!storedUser) return initialSettings;
+
+    const user = JSON.parse(storedUser) as {
+      firstName?: string;
+      lastName?: string;
+      email?: string;
+      name?: string;
+      displayName?: string;
+    };
+
+    const fullName =
+      [user.firstName, user.lastName].filter(Boolean).join(' ').trim() ||
+      user.displayName ||
+      user.name ||
+      user.email ||
+      '';
+
+    return {
+      ...initialSettings,
+      fullName,
+      email: user.email ?? '',
+    };
+  } catch {
+    return initialSettings;
+  }
+});
+
   const [savedMessage, setSavedMessage] = useState('');
 
   const [notifications, setNotifications] = useState({

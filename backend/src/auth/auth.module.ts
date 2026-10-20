@@ -4,6 +4,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { MailModule } from '../mail/mail.module';
 
 import { PrismaModule } from '../prisma/prisma.module';
 import { UsersModule } from '../users/users.module';
@@ -13,10 +14,12 @@ import { AuthService } from './auth.service';
 import { JwtStrategy } from './strategies/jwt.strategy/jwt.strategy';
 
 @Module({
+  
   imports: [
     UsersModule,
     PrismaModule,
     PassportModule,
+    MailModule,
     ThrottlerModule.forRoot([
       {
         ttl: 60_000,

@@ -248,6 +248,7 @@ describe('AuthService', () => {
       expect(jwtServiceMock.signAsync).toHaveBeenCalledWith({
         sub: 'user-123',
         email: 'test@example.com',
+        purpose: 'access',
       });
 
       expect(result).toEqual({

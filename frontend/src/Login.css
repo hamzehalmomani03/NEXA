@@ -198,3 +198,31 @@
   font-size: 13px;
   line-height: 1.5;
 }
+
+.login-forgot-password {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -4px;
+  margin-bottom: 8px;
+}
+
+.login-forgot-password button {
+  background: none;
+  border: none;
+  padding: 4px 0;
+  color: #34d399;
+  font: inherit;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.login-forgot-password button:hover {
+  color: #6ee7b7;
+  text-decoration: underline;
+}
+
+.login-forgot-password button:focus-visible {
+  outline: 2px solid #34d399;
+  outline-offset: 3px;
+  border-radius: 3px;
+}

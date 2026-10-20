@@ -87,6 +87,8 @@ export const UserScalarFieldEnum = {
   isSystemAdmin: 'isSystemAdmin',
   failedLoginAttempts: 'failedLoginAttempts',
   lockedUntil: 'lockedUntil',
+  passwordResetTokenHash: 'passwordResetTokenHash',
+  passwordResetExpiresAt: 'passwordResetExpiresAt',
   twoFactorEnabled: 'twoFactorEnabled',
   twoFactorSecretEncrypted: 'twoFactorSecretEncrypted',
   twoFactorPendingSecretEncrypted: 'twoFactorPendingSecretEncrypted',
@@ -103,7 +105,8 @@ export const OrganizationScalarFieldEnum = {
   name: 'name',
   slug: 'slug',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  isActive: 'isActive'
 } as const
 
 export type OrganizationScalarFieldEnum = (typeof OrganizationScalarFieldEnum)[keyof typeof OrganizationScalarFieldEnum]

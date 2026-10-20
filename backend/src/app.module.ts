@@ -14,7 +14,7 @@ import { ProductsModule } from './products/products.module';
 import { InventoryModule } from './inventory/inventory.module';
 import { SalesModule } from './sales/sales.module';
 import { CustomersModule } from './customers/customers.module';
-
+import { PlatformAdminModule } from './platform-admin/platform-admin.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -38,6 +38,7 @@ import { CustomersModule } from './customers/customers.module';
     InventoryModule,
     SalesModule,
     CustomersModule,
+    PlatformAdminModule,
   ],
   controllers: [AppController],
   providers: [],

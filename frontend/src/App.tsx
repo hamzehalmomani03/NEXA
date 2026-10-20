@@ -2,6 +2,8 @@ import './App.css';
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
+import PlatformAdminDashboard from './PlatformAdminDashboard';
+import ResetPassword from './ResetPassword';
 
 import {
   Link,
@@ -855,10 +857,11 @@ function DashboardLayout() {
 
   let organization: { name?: string } | null = null;
   let user: {
-    firstName?: string;
-    lastName?: string;
-    email?: string;
-  } | null = null;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  isSystemAdmin?: boolean;
+} | null = null;
 
   try {
     organization = organizationText
@@ -870,12 +873,13 @@ function DashboardLayout() {
 
   try {
     user = userText
-      ? (JSON.parse(userText) as {
-          firstName?: string;
-          lastName?: string;
-          email?: string;
-        })
-      : null;
+  ? (JSON.parse(userText) as {
+      firstName?: string;
+      lastName?: string;
+      email?: string;
+      isSystemAdmin?: boolean;
+    })
+  : null;
   } catch {
     user = null;
   }
@@ -1145,6 +1149,7 @@ function DashboardLayout() {
           </div>
         </header>
 
+        
         <div className="dashboard">
           <Routes>
             <Route path="/" element={<Navigate to="/overview" replace />} />
@@ -1160,6 +1165,26 @@ function DashboardLayout() {
             <Route path="*" element={<Navigate to="/overview" replace />} />
           </Routes>
         </div>
+
+        
+<footer className="nexa-footer" dir={isArabic ? 'rtl' : 'ltr'}>
+  <span>© 2026 NEXA. All rights reserved.</span>
+
+  <span className="nexa-footer-credit">
+    Developed by Hamzeh Almomani
+  </span>
+
+  
+<a
+  className="nexa-footer-email"
+  href="mailto:hamzeh.almomani03@gmail.com"
+>
+  <strong>Contact:</strong> hamzeh.almomani03@gmail.com
+</a>
+
+</footer>
+
+
       </main>
     </div>
   );
@@ -1168,6 +1193,17 @@ function DashboardLayout() {
 function App() {
   const token = localStorage.getItem('nexa_token');
   const location = useLocation();
+  if (location.pathname === '/reset-password') {
+  return <ResetPassword />;
+}
+
+  if (location.pathname.startsWith('/platform-admin')) {
+    if (!token) {
+      return <Navigate to="/login" replace />;
+    }
+
+    return <PlatformAdminDashboard />;
+  }
 
   if (location.pathname === '/login') {
     return token ? (

@@ -1501,3 +1501,55 @@ button.topbar-avatar:focus-visible {
   font-size: 18px;
   font-weight: 700;
 }
+
+.nexa-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 20px 28px;
+  margin-top: auto;
+  border-top: 1px solid rgba(148, 163, 184, 0.12);
+  color: #94a3b8;
+  font-size: 12px;
+  text-align: center;
+}
+
+.nexa-footer-credit {
+  color: #34d399;
+  font-size: 11px;
+}
+
+.nexa-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 20px 28px;
+  margin-top: auto;
+  border-top: 1px solid rgba(148, 163, 184, 0.12);
+  color: #94a3b8;
+  font-size: 12px;
+  text-align: center;
+}
+
+.nexa-footer-credit {
+  color: #34d399;
+  font-size: 11px;
+}
+
+.nexa-footer-email {
+  color: #94a3b8;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.nexa-footer-email:hover {
+  color: #34d399;
+  text-decoration: underline;
+}
+
+.nexa-footer-email strong {
+  color: #34d399;
+  font-weight: 700;
+}

@@ -1,14 +1,21 @@
 
 import { Test, TestingModule } from '@nestjs/testing';
+
 import {
   ForbiddenException,
   UnauthorizedException,
 } from '@nestjs/common';
+
 import { Reflector } from '@nestjs/core';
 
 import { RolesGuard } from './roles.guard';
+
 import { PrismaService } from '../../../prisma/prisma.service';
-import { OrganizationRole } from '../../../generated/prisma/client';
+
+import {
+  MembershipStatus,
+  OrganizationRole,
+} from '../../../generated/prisma/client';
 
 describe('RolesGuard', () => {
   let guard: RolesGuard;
@@ -23,6 +30,18 @@ describe('RolesGuard', () => {
     },
   };
 
+  // A valid, active organization membership.
+  // Individual tests can override any field.
+  const createActiveMembership = (
+    role: OrganizationRole,
+  ) => ({
+    role,
+    status: MembershipStatus.ACTIVE,
+    organization: {
+      isActive: true,
+    },
+  });
+
   beforeEach(async () => {
     jest.clearAllMocks();
 
@@ -30,20 +49,32 @@ describe('RolesGuard', () => {
       await Test.createTestingModule({
         providers: [
           RolesGuard,
-          { provide: Reflector, useValue: reflector },
-          { provide: PrismaService, useValue: prisma },
+          {
+            provide: Reflector,
+            useValue: reflector,
+          },
+          {
+            provide: PrismaService,
+            useValue: prisma,
+          },
         ],
       }).compile();
 
     guard = module.get<RolesGuard>(RolesGuard);
   });
 
-  const createContext = (body: object, user?: object) =>
+  const createContext = (
+    body: object,
+    user?: object,
+  ) =>
     ({
       getHandler: jest.fn(),
       getClass: jest.fn(),
       switchToHttp: () => ({
-        getRequest: () => ({ body, user }),
+        getRequest: () => ({
+          body,
+          user,
+        }),
       }),
     }) as any;
 
@@ -59,6 +90,7 @@ describe('RolesGuard', () => {
     );
 
     expect(result).toBe(true);
+
     expect(
       prisma.organizationMember.findUnique,
     ).not.toHaveBeenCalled();
@@ -121,9 +153,9 @@ describe('RolesGuard', () => {
       OrganizationRole.OWNER,
     ]);
 
-    prisma.organizationMember.findUnique.mockResolvedValue({
-      role: OrganizationRole.SALES,
-    });
+    prisma.organizationMember.findUnique.mockResolvedValue(
+      createActiveMembership(OrganizationRole.SALES),
+    );
 
     await expect(
       guard.canActivate(
@@ -141,9 +173,9 @@ describe('RolesGuard', () => {
       OrganizationRole.ADMIN,
     ]);
 
-    prisma.organizationMember.findUnique.mockResolvedValue({
-      role: OrganizationRole.OWNER,
-    });
+    prisma.organizationMember.findUnique.mockResolvedValue(
+      createActiveMembership(OrganizationRole.OWNER),
+    );
 
     const result = await guard.canActivate(
       createContext(
@@ -156,14 +188,16 @@ describe('RolesGuard', () => {
 
     expect(
       prisma.organizationMember.findUnique,
-    ).toHaveBeenCalledWith({
-      where: {
-        userId_organizationId: {
-          userId: 'user-1',
-          organizationId: 'org-1',
+    ).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          userId_organizationId: {
+            userId: 'user-1',
+            organizationId: 'org-1',
+          },
         },
-      },
-    });
+      }),
+    );
   });
 
   it('should allow members with the ADMIN role', async () => {
@@ -172,9 +206,9 @@ describe('RolesGuard', () => {
       OrganizationRole.ADMIN,
     ]);
 
-    prisma.organizationMember.findUnique.mockResolvedValue({
-      role: OrganizationRole.ADMIN,
-    });
+    prisma.organizationMember.findUnique.mockResolvedValue(
+      createActiveMembership(OrganizationRole.ADMIN),
+    );
 
     const result = await guard.canActivate(
       createContext(
@@ -204,5 +238,56 @@ describe('RolesGuard', () => {
     expect(
       prisma.organizationMember.findUnique,
     ).not.toHaveBeenCalled();
+  });
+
+  // SECURITY TEST:
+  // An inactive member must not access protected actions,
+  // even if their role is OWNER.
+
+  it('should reject inactive organization memberships', async () => {
+    reflector.getAllAndOverride.mockReturnValue([
+      OrganizationRole.OWNER,
+      OrganizationRole.ADMIN,
+    ]);
+
+    prisma.organizationMember.findUnique.mockResolvedValue({
+      ...createActiveMembership(OrganizationRole.OWNER),
+      status: MembershipStatus.INACTIVE,
+    });
+
+    await expect(
+      guard.canActivate(
+        createContext(
+          { organizationId: 'org-1' },
+          { userId: 'user-1' },
+        ),
+      ),
+    ).rejects.toThrow(ForbiddenException);
+  });
+
+  // SECURITY TEST:
+  // An active OWNER must not access a disabled organization.
+
+  it('should reject access to inactive organizations', async () => {
+    reflector.getAllAndOverride.mockReturnValue([
+      OrganizationRole.OWNER,
+      OrganizationRole.ADMIN,
+    ]);
+
+    prisma.organizationMember.findUnique.mockResolvedValue({
+      ...createActiveMembership(OrganizationRole.OWNER),
+      organization: {
+        isActive: false,
+      },
+    });
+
+    await expect(
+      guard.canActivate(
+        createContext(
+          { organizationId: 'org-1' },
+          { userId: 'user-1' },
+        ),
+      ),
+    ).rejects.toThrow(ForbiddenException);
   });
 });

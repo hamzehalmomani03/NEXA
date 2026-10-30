@@ -37,3 +37,12 @@ backend/.agents/
 backend/.claude/
 backend/.cursor/
 backend/.devin/
+!.env.sample
+*.bak-*
+*.pem
+*.key
+*.p12
+*.pfx
+*.sqlite
+*.sqlite3
+*backup-*/

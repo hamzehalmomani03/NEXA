@@ -367,7 +367,19 @@ export default function Login() {
     <main className="login-page">
       <section className="login-card">
         <div className="login-brand">
-          <div className="login-logo">N</div>
+          <div className="login-logo" style={{ padding: 0, overflow: 'hidden' }}>
+            <img
+              src="/nexa-icon.png"
+              alt="NEXA Logo"
+              style={{
+                display: 'block',
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                borderRadius: 'inherit',
+              }}
+            />
+          </div>
           <span>NEXA</span>
         </div>
  

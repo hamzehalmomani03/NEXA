@@ -1,5 +1,13 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
+
 import { useTranslation } from 'react-i18next';
+import TeamMemberActions from './TeamMemberActions';
 import './Team.css';
 
 const API_URL = import.meta.env.VITE_API_URL ?? '/api';
@@ -13,8 +21,11 @@ type TeamRole =
 
 type TeamStatus = 'Active' | 'Invited' | 'Inactive';
 
+type InviteRole = 'MANAGER' | 'ACCOUNTANT' | 'SALES';
+
 type TeamMember = {
   id: string;
+  userId: string;
   name: string;
   email: string;
   role: TeamRole;
@@ -39,8 +50,30 @@ type OrganizationResponse = {
   success: boolean;
   organization: {
     id: string;
+    role: string;
     members: ApiMember[];
   };
+};
+
+type ApiInvitation = {
+  id: string;
+  email: string;
+  role: string;
+  status: string;
+  expiresAt: string;
+  createdAt: string;
+  acceptedAt?: string | null;
+  revokedAt?: string | null;
+};
+
+type InvitationsResponse = {
+  success: boolean;
+  invitations: ApiInvitation[];
+};
+
+type ApiErrorResponse = {
+  message?: string | string[];
+  error?: string;
 };
 
 const avatarColors = [
@@ -90,18 +123,24 @@ function mapStatus(status: string): TeamStatus {
   }
 }
 
-function formatJoinedDate(date: string, isArabic: boolean): string {
+function formatJoinedDate(
+  date: string,
+  isArabic: boolean,
+): string {
   const parsedDate = new Date(date);
 
   if (Number.isNaN(parsedDate.getTime())) {
     return '—';
   }
 
-  return new Intl.DateTimeFormat(isArabic ? 'ar-JO' : 'en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: '2-digit',
-  }).format(parsedDate);
+  return new Intl.DateTimeFormat(
+    isArabic ? 'ar-JO' : 'en-US',
+    {
+      year: 'numeric',
+      month: 'short',
+      day: '2-digit',
+    },
+  ).format(parsedDate);
 }
 
 function mapApiMember(
@@ -118,16 +157,22 @@ function mapApiMember(
 
   return {
     id: member.id,
+    userId: member.user.id,
     name: fullName || member.user.email,
     email: member.user.email,
     role: mapRole(member.role),
     status: mapStatus(member.status),
-    joined: formatJoinedDate(member.joinedAt, isArabic),
+    joined: formatJoinedDate(
+      member.joinedAt,
+      isArabic,
+    ),
   };
 }
 
 function getOrganizationId(): string {
-  const savedOrganization = localStorage.getItem('nexa_organization');
+  const savedOrganization = localStorage.getItem(
+    'nexa_organization',
+  );
 
   if (!savedOrganization) {
     throw new Error(
@@ -136,7 +181,9 @@ function getOrganizationId(): string {
   }
 
   try {
-    const organization = JSON.parse(savedOrganization) as {
+    const organization = JSON.parse(
+      savedOrganization,
+    ) as {
       id?: string;
     };
 
@@ -154,11 +201,7 @@ function getOrganizationId(): string {
   }
 }
 
-async function fetchOrganizationMembers(
-  organizationId: string,
-): Promise<ApiMember[]> {
-  // Login.tsx stores the JWT in localStorage.
-  // A JWT is a plain string, so do not use JSON.parse on it.
+function getAccessToken(): string {
   const token = localStorage.getItem('nexa_token');
 
   if (!token) {
@@ -167,8 +210,33 @@ async function fetchOrganizationMembers(
     );
   }
 
+  return token;
+}
+
+function getApiError(
+  data: ApiErrorResponse,
+  status: number,
+): string {
+  if (Array.isArray(data.message)) {
+    return data.message.join(', ');
+  }
+
+  return (
+    data.message ||
+    data.error ||
+    `Request failed (${status})`
+  );
+}
+
+async function fetchOrganization(
+  organizationId: string,
+): Promise<OrganizationResponse['organization']> {
+  const token = getAccessToken();
+
   const response = await fetch(
-    `${API_URL}/organizations/${encodeURIComponent(organizationId)}`,
+    `${API_URL}/organizations/${encodeURIComponent(
+      organizationId,
+    )}`,
     {
       method: 'GET',
       headers: {
@@ -181,18 +249,12 @@ async function fetchOrganizationMembers(
   const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    const errorData = data as {
-      message?: string | string[];
-      error?: string;
-    };
-
-    const message = Array.isArray(errorData.message)
-      ? errorData.message.join(', ')
-      : errorData.message ||
-        errorData.error ||
-        `Request failed (${response.status})`;
-
-    throw new Error(message);
+    throw new Error(
+      getApiError(
+        data as ApiErrorResponse,
+        response.status,
+      ),
+    );
   }
 
   const result = data as OrganizationResponse;
@@ -207,7 +269,49 @@ async function fetchOrganizationMembers(
     );
   }
 
-  return result.organization.members;
+  return result.organization;
+}
+
+async function fetchInvitations(
+  organizationId: string,
+): Promise<ApiInvitation[]> {
+  const token = getAccessToken();
+
+  const response = await fetch(
+    `${API_URL}/organizations/${encodeURIComponent(
+      organizationId,
+    )}/invitations`,
+    {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  );
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(
+      getApiError(
+        data as ApiErrorResponse,
+        response.status,
+      ),
+    );
+  }
+
+  const result = data as InvitationsResponse;
+
+  if (
+    !result.success ||
+    !Array.isArray(result.invitations)
+  ) {
+    throw new Error(
+      'The server returned an unexpected invitations response.',
+    );
+  }
+
+  return result.invitations;
 }
 
 export default function Team() {
@@ -217,33 +321,110 @@ export default function Team() {
   const t = (english: string, arabic: string) =>
     isArabic ? arabic : english;
 
-  const [activeMembers, setMembers] = useState<TeamMember[]>([]);
+  // Team members
+  const [activeMembers, setMembers] = useState<
+    TeamMember[]
+  >([]);
+
   const [search, setSearch] = useState('');
-  const [roleFilter, setRoleFilter] = useState('All roles');
-  const [statusFilter, setStatusFilter] = useState('All statuses');
+  const [roleFilter, setRoleFilter] = useState(
+    'All roles',
+  );
+  const [statusFilter, setStatusFilter] = useState(
+    'All statuses',
+  );
 
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
 
+  // Organization permissions
+  const [
+    canManageInvitations,
+    setCanManageInvitations,
+  ] = useState(false);
+
+  const [viewerRole, setViewerRole] = useState('');
+
+  // Invitation list
+  const [invitations, setInvitations] = useState<
+    ApiInvitation[]
+  >([]);
+
+  const [
+    invitationLoadError,
+    setInvitationLoadError,
+  ] = useState('');
+
+  // Invite modal
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteRole, setInviteRole] =
+    useState<InviteRole>('SALES');
+
+  const [inviteSending, setInviteSending] =
+    useState(false);
+
+  const [inviteError, setInviteError] = useState('');
+  const [inviteSuccess, setInviteSuccess] =
+    useState('');
+
+  // Load organization members and invitations
   const loadMembers = useCallback(async () => {
     setLoading(true);
     setLoadError('');
+    setInvitationLoadError('');
 
     try {
       const organizationId = getOrganizationId();
-      const members = await fetchOrganizationMembers(organizationId);
+
+      const organization = await fetchOrganization(
+        organizationId,
+      );
 
       setMembers(
-        members.map((member) => mapApiMember(member, isArabic)),
+        organization.members.map((member) =>
+          mapApiMember(member, isArabic),
+        ),
       );
+
+      const canManage =
+        organization.role === 'OWNER' ||
+        organization.role === 'ADMIN';
+
+      setViewerRole(organization.role);
+      setCanManageInvitations(canManage);
+
+      // Invitation management is restricted
+      // to organization OWNER and ADMIN.
+      if (canManage) {
+        try {
+          const invitationRecords =
+            await fetchInvitations(organizationId);
+
+          setInvitations(invitationRecords);
+        } catch (error) {
+          setInvitations([]);
+
+          setInvitationLoadError(
+            error instanceof Error
+              ? error.message
+              : 'Failed to load invitations.',
+          );
+        }
+      } else {
+        setInvitations([]);
+      }
     } catch (error) {
+      setViewerRole('');
+      setCanManageInvitations(false);
+      setInvitations([]);
+
       setLoadError(
         error instanceof Error
           ? error.message
-          : t(
-              'Failed to load team members.',
-              'تعذّر تحميل أعضاء الفريق.',
-            ),
+          : isArabic
+            ? 'تعذّر تحميل أعضاء الفريق.'
+            : 'Failed to load team members.',
       );
     } finally {
       setLoading(false);
@@ -254,17 +435,163 @@ export default function Team() {
     void loadMembers();
   }, [loadMembers]);
 
+  // Close invite modal with Escape
+  useEffect(() => {
+    if (!inviteOpen) return;
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === 'Escape' && !inviteSending) {
+        setInviteOpen(false);
+      }
+    }
+
+    document.addEventListener(
+      'keydown',
+      handleEscape,
+    );
+
+    return () => {
+      document.removeEventListener(
+        'keydown',
+        handleEscape,
+      );
+    };
+  }, [inviteOpen, inviteSending]);
+
+  function openInviteModal() {
+    if (!canManageInvitations) return;
+
+    setInviteError('');
+    setInviteSuccess('');
+    setInviteEmail('');
+    setInviteRole('SALES');
+    setInviteOpen(true);
+  }
+
+  function closeInviteModal() {
+    if (inviteSending) return;
+
+    setInviteOpen(false);
+    setInviteError('');
+  }
+
+  async function handleInvite() {
+    if (inviteSending || !canManageInvitations) {
+      return;
+    }
+
+    setInviteSending(true);
+    setInviteError('');
+    setInviteSuccess('');
+
+    try {
+      const organizationId = getOrganizationId();
+      const token = getAccessToken();
+
+      const email = inviteEmail
+        .trim()
+        .toLowerCase();
+
+      if (
+        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ||
+        email.length > 254
+      ) {
+        throw new Error(
+          t(
+            'Please enter a valid email address.',
+            'يرجى إدخال بريد إلكتروني صحيح.',
+          ),
+        );
+      }
+
+      const response = await fetch(
+        `${API_URL}/organizations/${encodeURIComponent(
+          organizationId,
+        )}/invitations`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email,
+            role: inviteRole,
+          }),
+        },
+      );
+
+      const data = await response
+        .json()
+        .catch(() => ({}));
+
+      if (!response.ok || !data.success) {
+        throw new Error(
+          getApiError(
+            data as ApiErrorResponse,
+            response.status,
+          ),
+        );
+      }
+
+      setInviteSuccess(
+        t(
+          `Invitation sent successfully to ${email}`,
+          `تم إرسال الدعوة بنجاح إلى ${email}`,
+        ),
+      );
+
+      setInviteEmail('');
+      setInviteRole('SALES');
+      setInviteOpen(false);
+
+      // Refresh members and pending invitations.
+      void loadMembers();
+    } catch (error) {
+      setInviteError(
+        error instanceof Error
+          ? error.message
+          : t(
+              'Failed to send invitation.',
+              'تعذّر إرسال الدعوة.',
+            ),
+      );
+    } finally {
+      setInviteSending(false);
+    }
+  }
+
   const activeCount = activeMembers.filter(
     (member) => member.status === 'Active',
   ).length;
 
-  const invitedCount = activeMembers.filter(
-    (member) => member.status === 'Invited',
-  ).length;
+  // Pending invitations live in the separate
+  // OrganizationInvitation database table.
+  const pendingInvitations = invitations.filter(
+    (invitation) =>
+      invitation.status === 'PENDING' &&
+      new Date(invitation.expiresAt).getTime() >
+        Date.now(),
+  );
+
+  // Avoid counting the same email twice
+  // if an old INVITED membership also exists.
+  const invitedEmails = new Set([
+    ...activeMembers
+      .filter((member) => member.status === 'Invited')
+      .map((member) => member.email.toLowerCase()),
+
+    ...pendingInvitations.map((invitation) =>
+      invitation.email.toLowerCase(),
+    ),
+  ]);
+
+  const invitedCount = invitedEmails.size;
 
   const adminCount = activeMembers.filter(
     (member) =>
-      member.role === 'Owner' || member.role === 'Admin',
+      member.role === 'Owner' ||
+      member.role === 'Admin',
   ).length;
 
   const filteredMembers = useMemo(() => {
@@ -276,15 +603,25 @@ export default function Team() {
         member.email.toLowerCase().includes(query);
 
       const matchesRole =
-        roleFilter === 'All roles' || member.role === roleFilter;
+        roleFilter === 'All roles' ||
+        member.role === roleFilter;
 
       const matchesStatus =
         statusFilter === 'All statuses' ||
         member.status === statusFilter;
 
-      return matchesSearch && matchesRole && matchesStatus;
+      return (
+        matchesSearch &&
+        matchesRole &&
+        matchesStatus
+      );
     });
-  }, [activeMembers, search, roleFilter, statusFilter]);
+  }, [
+    activeMembers,
+    search,
+    roleFilter,
+    statusFilter,
+  ]);
 
   function translateRole(role: TeamRole) {
     const labels: Record<TeamRole, string> = {
@@ -315,7 +652,10 @@ export default function Team() {
   }
 
   return (
-    <div className="team-page" dir={isArabic ? 'rtl' : 'ltr'}>
+    <div
+      className="team-page"
+      dir={isArabic ? 'rtl' : 'ltr'}
+    >
       <header className="team-header">
         <div>
           <div className="team-eyebrow">
@@ -323,7 +663,9 @@ export default function Team() {
             {t('MANAGEMENT', 'إدارة الفريق')}
           </div>
 
-          <h1>{t('Team Members', 'أعضاء الفريق')}</h1>
+          <h1>
+            {t('Team Members', 'أعضاء الفريق')}
+          </h1>
 
           <p className="team-subtitle">
             {t(
@@ -336,17 +678,339 @@ export default function Team() {
         <button
           className="team-primary-btn"
           type="button"
-          disabled
-          title={t(
-            'Member invitations are not connected to the backend yet.',
-            'لم يتم ربط دعوات الأعضاء بالخادم بعد.',
-          )}
+          onClick={openInviteModal}
+          disabled={
+            loading ||
+            !canManageInvitations
+          }
+          title={
+            canManageInvitations
+              ? t(
+                  'Invite an employee',
+                  'دعوة موظف',
+                )
+              : t(
+                  'Only organization owners and admins can invite employees.',
+                  'يمكن لمالك المؤسسة أو المسؤول فقط دعوة الموظفين.',
+                )
+          }
         >
           <span className="team-plus">+</span>
-          {t('Add team member', 'إضافة عضو للفريق')}
+          {t(
+            'Add team member',
+            'إضافة عضو للفريق',
+          )}
         </button>
       </header>
 
+      {/* SUCCESS MESSAGE */}
+      {inviteSuccess && (
+        <div
+          role="status"
+          style={{
+            marginBottom: 20,
+            padding: 16,
+            borderRadius: 12,
+            background: '#103c2c',
+            border: '1px solid #276749',
+            color: '#86efac',
+          }}
+        >
+          ✓ {inviteSuccess}
+        </div>
+      )}
+
+      {/* INVITE EMPLOYEE MODAL */}
+      {inviteOpen && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9999,
+            background: 'rgba(0,0,0,0.78)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            padding: 20,
+          }}
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) {
+              closeInviteModal();
+            }
+          }}
+        >
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="invite-dialog-title"
+            aria-describedby="invite-dialog-description"
+            style={{
+              width: '100%',
+              maxWidth: 470,
+              boxSizing: 'border-box',
+              padding: 30,
+              borderRadius: 22,
+              background: '#10221d',
+              border: '1px solid #285344',
+              color: '#ffffff',
+              boxShadow:
+                '0 24px 70px rgba(0,0,0,0.55)',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 14,
+                marginBottom: 18,
+              }}
+            >
+              <img
+                src="/nexa-icon.png"
+                alt=""
+                aria-hidden="true"
+                style={{
+                  width: 54,
+                  height: 54,
+                  borderRadius: 14,
+                  objectFit: 'cover',
+                }}
+              />
+
+              <div>
+                <h2
+                  id="invite-dialog-title"
+                  style={{
+                    color: '#34d399',
+                    margin: 0,
+                  }}
+                >
+                  {t(
+                    'Invite Employee',
+                    'دعوة موظف',
+                  )}
+                </h2>
+
+                <span
+                  style={{
+                    fontSize: 12,
+                    color: '#91a99e',
+                  }}
+                >
+                  NEXA Workspace
+                </span>
+              </div>
+            </div>
+
+            <p
+              id="invite-dialog-description"
+              style={{
+                color: '#a7bcb2',
+                lineHeight: 1.8,
+              }}
+            >
+              {t(
+                'Enter the employee email and choose their role. NEXA will send a secure invitation link.',
+                'أدخل بريد الموظف واختر صلاحياته. سيقوم NEXA بإرسال رابط دعوة آمن.',
+              )}
+            </p>
+
+            <form
+              onSubmit={(event) => {
+                event.preventDefault();
+                void handleInvite();
+              }}
+            >
+              <label
+                htmlFor="invite-email"
+                style={{
+                  display: 'block',
+                  marginBottom: 9,
+                  fontWeight: 600,
+                }}
+              >
+                {t(
+                  'Employee Email',
+                  'البريد الإلكتروني للموظف',
+                )}
+              </label>
+
+              <input
+                id="invite-email"
+                type="email"
+                required
+                maxLength={254}
+                autoFocus
+                autoComplete="email"
+                disabled={inviteSending}
+                value={inviteEmail}
+                onChange={(event) =>
+                  setInviteEmail(
+                    event.target.value,
+                  )
+                }
+                placeholder="employee@example.com"
+                style={{
+                  boxSizing: 'border-box',
+                  width: '100%',
+                  padding: 14,
+                  marginBottom: 22,
+                  borderRadius: 11,
+                  border: '1px solid #335c4e',
+                  background: '#091713',
+                  color: '#ffffff',
+                  fontSize: 15,
+                  outlineColor: '#34d399',
+                }}
+              />
+
+              <label
+                htmlFor="invite-role"
+                style={{
+                  display: 'block',
+                  marginBottom: 9,
+                  fontWeight: 600,
+                }}
+              >
+                {t(
+                  'Employee Role',
+                  'صلاحية الموظف',
+                )}
+              </label>
+
+              <select
+                id="invite-role"
+                disabled={inviteSending}
+                value={inviteRole}
+                onChange={(event) =>
+                  setInviteRole(
+                    event.target.value as InviteRole,
+                  )
+                }
+                style={{
+                  boxSizing: 'border-box',
+                  width: '100%',
+                  padding: 14,
+                  marginBottom: 20,
+                  borderRadius: 11,
+                  border: '1px solid #335c4e',
+                  background: '#091713',
+                  color: '#ffffff',
+                  fontSize: 15,
+                }}
+              >
+                <option value="SALES">
+                  {t(
+                    'Sales Employee',
+                    'موظف مبيعات',
+                  )}
+                </option>
+
+                <option value="ACCOUNTANT">
+                  {t(
+                    'Accountant',
+                    'محاسب',
+                  )}
+                </option>
+
+                <option value="MANAGER">
+                  {t(
+                    'Manager',
+                    'مدير',
+                  )}
+                </option>
+              </select>
+
+              <p
+                style={{
+                  color: '#91a99e',
+                  fontSize: 12,
+                  marginTop: -4,
+                  marginBottom: 20,
+                }}
+              >
+                {t(
+                  'The invitation expires after 7 days.',
+                  'تنتهي صلاحية الدعوة بعد 7 أيام.',
+                )}
+              </p>
+
+              {inviteError && (
+                <div
+                  role="alert"
+                  style={{
+                    marginBottom: 18,
+                    padding: 12,
+                    borderRadius: 9,
+                    background: '#421b24',
+                    color: '#fca5a5',
+                    overflowWrap: 'anywhere',
+                  }}
+                >
+                  {inviteError}
+                </div>
+              )}
+
+              <div
+                style={{
+                  display: 'flex',
+                  gap: 12,
+                  justifyContent: 'flex-end',
+                }}
+              >
+                <button
+                  type="button"
+                  disabled={inviteSending}
+                  onClick={closeInviteModal}
+                  style={{
+                    padding: '12px 18px',
+                    borderRadius: 10,
+                    background: '#253c34',
+                    border: 0,
+                    color: '#ffffff',
+                    cursor: inviteSending
+                      ? 'not-allowed'
+                      : 'pointer',
+                  }}
+                >
+                  {t('Cancel', 'إلغاء')}
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={inviteSending}
+                  style={{
+                    padding: '12px 18px',
+                    borderRadius: 10,
+                    background: '#34d399',
+                    color: '#052e24',
+                    fontWeight: 700,
+                    border: 0,
+                    cursor: inviteSending
+                      ? 'wait'
+                      : 'pointer',
+                    opacity: inviteSending
+                      ? 0.65
+                      : 1,
+                  }}
+                >
+                  {inviteSending
+                    ? t(
+                        'Sending...',
+                        'جارٍ الإرسال...',
+                      )
+                    : t(
+                        'Send Invitation',
+                        'إرسال الدعوة',
+                      )}
+                </button>
+              </div>
+            </form>
+          </section>
+        </div>
+      )}
+
+      {/* MEMBERS LOAD ERROR */}
       {loadError && (
         <div
           role="alert"
@@ -359,7 +1023,12 @@ export default function Team() {
             background: '#fff5f5',
           }}
         >
-          <p style={{ marginTop: 0, marginBottom: 12 }}>
+          <p
+            style={{
+              marginTop: 0,
+              marginBottom: 12,
+            }}
+          >
             {t(
               'Could not load team members:',
               'تعذّر تحميل أعضاء الفريق:',
@@ -377,73 +1046,181 @@ export default function Team() {
         </div>
       )}
 
+      {/* INVITATIONS LOAD ERROR */}
+      {invitationLoadError &&
+        canManageInvitations && (
+          <div
+            role="alert"
+            style={{
+              marginBottom: 20,
+              padding: 14,
+              borderRadius: 12,
+              border: '1px solid #a76b36',
+              color: '#fbbf24',
+              background: '#32291c',
+            }}
+          >
+            {t(
+              'Could not load invitations:',
+              'تعذّر تحميل الدعوات:',
+            )}{' '}
+            {invitationLoadError}
+
+            <button
+              className="team-secondary-btn"
+              type="button"
+              onClick={() => void loadMembers()}
+              style={{
+                marginInlineStart: 12,
+              }}
+            >
+              {t('Retry', 'إعادة المحاولة')}
+            </button>
+          </div>
+        )}
+
+      {/* TEAM STATISTICS */}
       <section className="team-stats">
         <article className="team-stat-card">
           <div className="team-stat-top">
-            <span>{t('Total members', 'إجمالي الأعضاء')}</span>
-            <span className="team-stat-icon">♧</span>
+            <span>
+              {t(
+                'Total members',
+                'إجمالي الأعضاء',
+              )}
+            </span>
+            <span className="team-stat-icon">
+              ♧
+            </span>
           </div>
 
           <div className="team-stat-value">
-            {loading ? '...' : activeMembers.length.toLocaleString(isArabic ? 'ar-JO' : 'en-US')}
+            {loading
+              ? '...'
+              : activeMembers.length.toLocaleString(
+                  isArabic
+                    ? 'ar-JO'
+                    : 'en-US',
+                )}
           </div>
 
           <div className="team-stat-note">
-            {t('People in your workspace', 'الأشخاص في مساحة العمل')}
+            {t(
+              'People in your workspace',
+              'الأشخاص في مساحة العمل',
+            )}
           </div>
         </article>
 
         <article className="team-stat-card">
           <div className="team-stat-top">
-            <span>{t('Active members', 'الأعضاء النشطون')}</span>
-            <span className="team-stat-icon team-icon-green">✓</span>
+            <span>
+              {t(
+                'Active members',
+                'الأعضاء النشطون',
+              )}
+            </span>
+
+            <span className="team-stat-icon team-icon-green">
+              ✓
+            </span>
           </div>
 
           <div className="team-stat-value">
-            {loading ? '...' : activeCount.toLocaleString(isArabic ? 'ar-JO' : 'en-US')}
+            {loading
+              ? '...'
+              : activeCount.toLocaleString(
+                  isArabic
+                    ? 'ar-JO'
+                    : 'en-US',
+                )}
           </div>
 
           <div className="team-stat-note">
             <span className="team-status-dot active-dot" />
-            {t('Currently active', 'نشطون حاليًا')}
+            {t(
+              'Currently active',
+              'نشطون حاليًا',
+            )}
           </div>
         </article>
 
         <article className="team-stat-card">
           <div className="team-stat-top">
-            <span>{t('Pending invites', 'الدعوات المعلّقة')}</span>
-            <span className="team-stat-icon team-icon-yellow">✉</span>
+            <span>
+              {t(
+                'Pending invites',
+                'الدعوات المعلّقة',
+              )}
+            </span>
+
+            <span className="team-stat-icon team-icon-yellow">
+              ✉
+            </span>
           </div>
 
           <div className="team-stat-value">
-            {loading ? '...' : invitedCount.toLocaleString(isArabic ? 'ar-JO' : 'en-US')}
+            {loading
+              ? '...'
+              : invitedCount.toLocaleString(
+                  isArabic
+                    ? 'ar-JO'
+                    : 'en-US',
+                )}
           </div>
 
           <div className="team-stat-note">
-            {t('Waiting to join', 'بانتظار الانضمام')}
+            {t(
+              'Waiting to join',
+              'بانتظار الانضمام',
+            )}
           </div>
         </article>
 
         <article className="team-stat-card">
           <div className="team-stat-top">
-            <span>{t('Admins & owners', 'المسؤولون والمُلّاك')}</span>
-            <span className="team-stat-icon team-icon-purple">♙</span>
+            <span>
+              {t(
+                'Admins & owners',
+                'المسؤولون والمُلّاك',
+              )}
+            </span>
+
+            <span className="team-stat-icon team-icon-purple">
+              ♙
+            </span>
           </div>
 
           <div className="team-stat-value">
-            {loading ? '...' : adminCount.toLocaleString(isArabic ? 'ar-JO' : 'en-US')}
+            {loading
+              ? '...'
+              : adminCount.toLocaleString(
+                  isArabic
+                    ? 'ar-JO'
+                    : 'en-US',
+                )}
           </div>
 
           <div className="team-stat-note">
-            {t('Elevated access roles', 'صلاحيات وصول متقدمة')}
+            {t(
+              'Elevated access roles',
+              'صلاحيات وصول متقدمة',
+            )}
           </div>
         </article>
       </section>
 
+      {/* MEMBERS TABLE */}
       <section className="team-table-card">
         <div className="team-table-heading">
           <div>
-            <h2>{t('All members', 'جميع الأعضاء')}</h2>
+            <h2>
+              {t(
+                'All members',
+                'جميع الأعضاء',
+              )}
+            </h2>
+
             <p>
               {t(
                 'View and manage everyone in your team.',
@@ -453,7 +1230,13 @@ export default function Team() {
           </div>
 
           <span className="team-count-badge">
-            {loading ? '...' : filteredMembers.length.toLocaleString(isArabic ? 'ar-JO' : 'en-US')}{' '}
+            {loading
+              ? '...'
+              : filteredMembers.length.toLocaleString(
+                  isArabic
+                    ? 'ar-JO'
+                    : 'en-US',
+                )}{' '}
             {t('members', 'أعضاء')}
           </span>
         </div>
@@ -469,7 +1252,9 @@ export default function Team() {
                 'ابحث بالاسم أو البريد الإلكتروني...',
               )}
               value={search}
-              onChange={(event) => setSearch(event.target.value)}
+              onChange={(event) =>
+                setSearch(event.target.value)
+              }
               aria-label={t(
                 'Search team members',
                 'البحث عن أعضاء الفريق',
@@ -480,27 +1265,71 @@ export default function Team() {
           <select
             className="team-filter"
             value={roleFilter}
-            onChange={(event) => setRoleFilter(event.target.value)}
-            aria-label={t('Filter by role', 'تصفية حسب الدور')}
+            onChange={(event) =>
+              setRoleFilter(event.target.value)
+            }
+            aria-label={t(
+              'Filter by role',
+              'تصفية حسب الدور',
+            )}
           >
-            <option value="All roles">{t('All roles', 'جميع الأدوار')}</option>
-            <option value="Owner">{t('Owner', 'المالك')}</option>
-            <option value="Admin">{t('Admin', 'مسؤول')}</option>
-            <option value="Manager">{t('Manager', 'مدير')}</option>
-            <option value="Accountant">{t('Accountant', 'محاسب')}</option>
-            <option value="Employee">{t('Employee', 'موظف')}</option>
+            <option value="All roles">
+              {t('All roles', 'جميع الأدوار')}
+            </option>
+
+            <option value="Owner">
+              {t('Owner', 'المالك')}
+            </option>
+
+            <option value="Admin">
+              {t('Admin', 'مسؤول')}
+            </option>
+
+            <option value="Manager">
+              {t('Manager', 'مدير')}
+            </option>
+
+            <option value="Accountant">
+              {t('Accountant', 'محاسب')}
+            </option>
+
+            <option value="Employee">
+              {t('Employee', 'موظف')}
+            </option>
           </select>
 
           <select
             className="team-filter"
             value={statusFilter}
-            onChange={(event) => setStatusFilter(event.target.value)}
-            aria-label={t('Filter by status', 'تصفية حسب الحالة')}
+            onChange={(event) =>
+              setStatusFilter(event.target.value)
+            }
+            aria-label={t(
+              'Filter by status',
+              'تصفية حسب الحالة',
+            )}
           >
-            <option value="All statuses">{t('All statuses', 'جميع الحالات')}</option>
-            <option value="Active">{t('Active', 'نشط')}</option>
-            <option value="Invited">{t('Invited', 'بانتظار الدعوة')}</option>
-            <option value="Inactive">{t('Inactive', 'غير نشط')}</option>
+            <option value="All statuses">
+              {t(
+                'All statuses',
+                'جميع الحالات',
+              )}
+            </option>
+
+            <option value="Active">
+              {t('Active', 'نشط')}
+            </option>
+
+            <option value="Invited">
+              {t(
+                'Invited',
+                'بانتظار الدعوة',
+              )}
+            </option>
+
+            <option value="Inactive">
+              {t('Inactive', 'غير نشط')}
+            </option>
           </select>
         </div>
 
@@ -508,11 +1337,28 @@ export default function Team() {
           <table className="team-table">
             <thead>
               <tr>
-                <th>{t('MEMBER', 'العضو')}</th>
-                <th>{t('ROLE', 'الدور')}</th>
-                <th>{t('STATUS', 'الحالة')}</th>
-                <th>{t('JOINED', 'تاريخ الانضمام')}</th>
-                <th className="team-actions-heading">{t('ACTIONS', 'الإجراءات')}</th>
+                <th>
+                  {t('MEMBER', 'العضو')}
+                </th>
+
+                <th>
+                  {t('ROLE', 'الدور')}
+                </th>
+
+                <th>
+                  {t('STATUS', 'الحالة')}
+                </th>
+
+                <th>
+                  {t('JOINED', 'تاريخ الانضمام')}
+                </th>
+
+                <th className="team-actions-heading">
+                  {t(
+                    'ACTIONS',
+                    'الإجراءات',
+                  )}
+                </th>
               </tr>
             </thead>
 
@@ -521,7 +1367,12 @@ export default function Team() {
                 <tr>
                   <td colSpan={5}>
                     <div className="team-empty-state">
-                      <strong>{t('Loading team members...', 'جارٍ تحميل أعضاء الفريق...')}</strong>
+                      <strong>
+                        {t(
+                          'Loading team members...',
+                          'جارٍ تحميل أعضاء الفريق...',
+                        )}
+                      </strong>
                     </div>
                   </td>
                 </tr>
@@ -529,84 +1380,119 @@ export default function Team() {
 
               {!loading &&
                 !loadError &&
-                filteredMembers.map((member, index) => (
-                  <tr key={member.id}>
-                    <td>
-                      <div className="team-member-cell">
-                        <div
-                          className="team-avatar"
-                          style={{
-                            background: avatarColors[index % avatarColors.length],
-                          }}
-                        >
-                          {getInitials(member.name)}
-                        </div>
+                filteredMembers.map(
+                  (member, index) => (
+                    <tr key={member.id}>
+                      <td>
+                        <div className="team-member-cell">
+                          <div
+                            className="team-avatar"
+                            style={{
+                              background:
+                                avatarColors[
+                                  index %
+                                    avatarColors.length
+                                ],
+                            }}
+                          >
+                            {getInitials(
+                              member.name,
+                            )}
+                          </div>
 
-                        <div className="team-member-info">
-                          <span className="team-member-name">{member.name}</span>
-                          <span className="team-member-email">{member.email}</span>
+                          <div className="team-member-info">
+                            <span className="team-member-name">
+                              {member.name}
+                            </span>
+
+                            <span className="team-member-email">
+                              {member.email}
+                            </span>
+                          </div>
                         </div>
+                      </td>
+
+                      <td>
+                        <span
+                          className={`team-role role-${member.role.toLowerCase()}`}
+                        >
+                          {member.role ===
+                            'Owner' && (
+                            <span>♛ </span>
+                          )}
+
+                          {translateRole(
+                            member.role,
+                          )}
+                        </span>
+                      </td>
+
+                      <td>
+                        <span
+                          className={`team-status status-${member.status.toLowerCase()}`}
+                        >
+                          <span className="team-status-dot" />
+
+                          {translateStatus(
+                            member.status,
+                          )}
+                        </span>
+                      </td>
+
+                      <td className="team-joined">
+                        {member.joined}
+                      </td>
+
+                      <td className="team-actions-cell">
+                        <TeamMemberActions
+                          member={member}
+                          viewerRole={viewerRole}
+                          onUpdated={() => {
+                            void loadMembers();
+                          }}
+                          onSuccess={setInviteSuccess}
+                          t={t}
+                        />
+                      </td>
+                    </tr>
+                  ),
+                )}
+
+              {!loading &&
+                !loadError &&
+                filteredMembers.length === 0 && (
+                  <tr>
+                    <td colSpan={5}>
+                      <div className="team-empty-state">
+                        <span>⌕</span>
+
+                        <strong>
+                          {t(
+                            'No members found',
+                            'لم يتم العثور على أعضاء',
+                          )}
+                        </strong>
+
+                        <p>
+                          {t(
+                            'Try changing your search or filters.',
+                            'جرّب تعديل كلمات البحث أو خيارات التصفية.',
+                          )}
+                        </p>
+
+                        <button
+                          type="button"
+                          onClick={clearFilters}
+                        >
+                          {t(
+                            'Clear filters',
+                            'مسح عوامل التصفية',
+                          )}
+                        </button>
                       </div>
                     </td>
-
-                    <td>
-                      <span className={`team-role role-${member.role.toLowerCase()}`}>
-                        {member.role === 'Owner' && <span>♛ </span>}
-                        {translateRole(member.role)}
-                      </span>
-                    </td>
-
-                    <td>
-                      <span className={`team-status status-${member.status.toLowerCase()}`}>
-                        <span className="team-status-dot" />
-                        {translateStatus(member.status)}
-                      </span>
-                    </td>
-
-                    <td className="team-joined">{member.joined}</td>
-
-                    <td className="team-actions-cell">
-                      <button
-                        className="team-action-btn"
-                        type="button"
-                        disabled
-                        aria-label={t(
-                          `Actions for ${member.name}`,
-                          `إجراءات العضو ${member.name}`,
-                        )}
-                        title={t(
-                          'Member management is not connected yet.',
-                          'إدارة الأعضاء غير مفعّلة بعد.',
-                        )}
-                      >
-                        ⋯
-                      </button>
-                    </td>
                   </tr>
-                ))}
-
-              {!loading && !loadError && filteredMembers.length === 0 && (
-                <tr>
-                  <td colSpan={5}>
-                    <div className="team-empty-state">
-                      <span>⌕</span>
-
-                      <strong>{t('No members found', 'لم يتم العثور على أعضاء')}</strong>
-
-                      <p>
-                        {t(
-                          'Try changing your search or filters.',
-                          'جرّب تعديل كلمات البحث أو خيارات التصفية.',
-                        )}
-                      </p>
-
-                      <button type="button" onClick={clearFilters}>
-                        {t('Clear filters', 'مسح عوامل التصفية')}
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              )}
+                )}
             </tbody>
           </table>
         </div>
@@ -614,21 +1500,162 @@ export default function Team() {
         <div className="team-table-footer">
           <span>
             {t('Showing', 'عرض')}{' '}
-            {loading ? '...' : filteredMembers.length.toLocaleString(isArabic ? 'ar-JO' : 'en-US')}{' '}
+            {loading
+              ? '...'
+              : filteredMembers.length.toLocaleString(
+                  isArabic
+                    ? 'ar-JO'
+                    : 'en-US',
+                )}{' '}
             {t('of', 'من')}{' '}
-            {loading ? '...' : activeMembers.length.toLocaleString(isArabic ? 'ar-JO' : 'en-US')}{' '}
+            {loading
+              ? '...'
+              : activeMembers.length.toLocaleString(
+                  isArabic
+                    ? 'ar-JO'
+                    : 'en-US',
+                )}{' '}
             {t('members', 'أعضاء')}
           </span>
 
           <span className="team-footer-indicator">
             <span className="team-status-dot active-dot" />
-            {t('Workspace members', 'أعضاء مساحة العمل')}
+            {t(
+              'Workspace members',
+              'أعضاء مساحة العمل',
+            )}
           </span>
         </div>
       </section>
 
+      {/* PENDING INVITATIONS */}
+      {canManageInvitations && (
+        <section
+          className="team-table-card"
+          style={{ marginTop: 24 }}
+        >
+          <div className="team-table-heading">
+            <div>
+              <h2>
+                {t(
+                  'Pending Invitations',
+                  'الدعوات المعلّقة',
+                )}
+              </h2>
+
+              <p>
+                {t(
+                  'Employees who received an invitation and have not joined yet.',
+                  'الموظفون الذين أُرسلت لهم دعوات ولم ينضموا بعد.',
+                )}
+              </p>
+            </div>
+
+            <span className="team-count-badge">
+              {pendingInvitations.length}{' '}
+              {t(
+                'invitations',
+                'دعوات',
+              )}
+            </span>
+          </div>
+
+          <div className="team-table-wrap">
+            <table className="team-table">
+              <thead>
+                <tr>
+                  <th>
+                    {t('EMAIL', 'الإيميل')}
+                  </th>
+
+                  <th>
+                    {t('ROLE', 'الدور')}
+                  </th>
+
+                  <th>
+                    {t('STATUS', 'الحالة')}
+                  </th>
+
+                  <th>
+                    {t(
+                      'EXPIRES',
+                      'تاريخ الانتهاء',
+                    )}
+                  </th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {pendingInvitations.length ===
+                0 ? (
+                  <tr>
+                    <td colSpan={4}>
+                      <div className="team-empty-state">
+                        <strong>
+                          {t(
+                            'No pending invitations',
+                            'لا توجد دعوات معلّقة',
+                          )}
+                        </strong>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  pendingInvitations.map(
+                    (invitation) => (
+                      <tr key={invitation.id}>
+                        <td>
+                          <span className="team-member-email">
+                            {invitation.email}
+                          </span>
+                        </td>
+
+                        <td>
+                          <span
+                            className={`team-role role-${mapRole(
+                              invitation.role,
+                            ).toLowerCase()}`}
+                          >
+                            {translateRole(
+                              mapRole(
+                                invitation.role,
+                              ),
+                            )}
+                          </span>
+                        </td>
+
+                        <td>
+                          <span className="team-status status-invited">
+                            <span className="team-status-dot" />
+
+                            {t(
+                              'Pending',
+                              'بانتظار القبول',
+                            )}
+                          </span>
+                        </td>
+
+                        <td className="team-joined">
+                          {formatJoinedDate(
+                            invitation.expiresAt,
+                            isArabic,
+                          )}
+                        </td>
+                      </tr>
+                    ),
+                  )
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
+      {/* INFO BANNER */}
       <aside className="team-info-banner">
-        <div className="team-info-icon">✳</div>
+        <div className="team-info-icon">
+          ✳
+        </div>
 
         <div>
           <h3>
@@ -646,8 +1673,11 @@ export default function Team() {
           </p>
         </div>
 
-        <span className="team-banner-decoration">NEXA</span>
+        <span className="team-banner-decoration">
+          NEXA
+        </span>
       </aside>
     </div>
   );
 }
+

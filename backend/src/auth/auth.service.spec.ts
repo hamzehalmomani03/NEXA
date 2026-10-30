@@ -6,6 +6,7 @@ import * as bcrypt from 'bcrypt';
 
 import { AuthService } from './auth.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { MailService } from '../mail/mail.service';
 
 jest.mock('bcrypt', () => ({
   compare: jest.fn(),
@@ -38,6 +39,10 @@ describe('AuthService', () => {
     decode: jest.fn(),
   };
 
+  // Mock MailService for dependency injection.
+  // The tests below do not call email methods.
+  const mailServiceMock = {};
+
   const mockUser = {
     id: 'user-123',
     email: 'test@example.com',
@@ -63,6 +68,10 @@ describe('AuthService', () => {
           {
             provide: JwtService,
             useValue: jwtServiceMock,
+          },
+          {
+            provide: MailService,
+            useValue: mailServiceMock,
           },
         ],
       }).compile();
@@ -164,22 +173,33 @@ describe('AuthService', () => {
       });
 
       const updateCall = prismaMock.user.update.mock.calls[0][0];
+
       const remainingLockMs =
         updateCall.data.lockedUntil.getTime() - Date.now();
 
-      expect(remainingLockMs).toBeGreaterThan(14 * 60 * 1000);
-      expect(remainingLockMs).toBeLessThanOrEqual(15 * 60 * 1000);
+      expect(remainingLockMs).toBeGreaterThan(
+        14 * 60 * 1000,
+      );
+
+      expect(remainingLockMs).toBeLessThanOrEqual(
+        15 * 60 * 1000,
+      );
     });
 
     it('rejects login while the account is locked', async () => {
       prismaMock.user.findUnique.mockResolvedValue({
         ...mockUser,
         failedLoginAttempts: 5,
-        lockedUntil: new Date(Date.now() + 15 * 60 * 1000),
+        lockedUntil: new Date(
+          Date.now() + 15 * 60 * 1000,
+        ),
       });
 
       await expect(
-        service.validateUser('test@example.com', 'correct-password'),
+        service.validateUser(
+          'test@example.com',
+          'correct-password',
+        ),
       ).rejects.toThrow(UnauthorizedException);
 
       expect(bcrypt.compare).not.toHaveBeenCalled();
@@ -197,7 +217,10 @@ describe('AuthService', () => {
       prismaMock.user.update.mockResolvedValue({});
 
       await expect(
-        service.validateUser('test@example.com', 'wrong-password'),
+        service.validateUser(
+          'test@example.com',
+          'wrong-password',
+        ),
       ).rejects.toThrow(UnauthorizedException);
 
       expect(prismaMock.user.update).toHaveBeenCalledWith({
@@ -238,7 +261,9 @@ describe('AuthService', () => {
     it('returns an access token and safe user data', async () => {
       prismaMock.user.findUnique.mockResolvedValue(mockUser);
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
-      jwtServiceMock.signAsync.mockResolvedValue('test-access-token');
+      jwtServiceMock.signAsync.mockResolvedValue(
+        'test-access-token',
+      );
 
       const result = await service.login(
         'test@example.com',
@@ -268,7 +293,10 @@ describe('AuthService', () => {
       prismaMock.user.findUnique.mockResolvedValue(null);
 
       await expect(
-        service.login('unknown@example.com', 'wrong-password'),
+        service.login(
+          'unknown@example.com',
+          'wrong-password',
+        ),
       ).rejects.toThrow(UnauthorizedException);
 
       expect(jwtServiceMock.signAsync).not.toHaveBeenCalled();

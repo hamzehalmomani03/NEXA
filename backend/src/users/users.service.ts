@@ -1,7 +1,13 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from '../auth/dto/create-user.dto';
+import { UpdateMyProfileDto } from './dto/update-my-profile.dto';
 
 @Injectable()
 export class UsersService {
@@ -51,6 +57,48 @@ export class UsersService {
         lastName: true,
         isActive: true,
         createdAt: true,
+        updatedAt: true,
+      },
+    });
+  }
+
+  async findMe(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        isActive: true,
+        updatedAt: true,
+      },
+    });
+
+    if (!user || !user.isActive) {
+      throw new UnauthorizedException('User is inactive or does not exist');
+    }
+
+    return user;
+  }
+
+  async updateMe(userId: string, dto: UpdateMyProfileDto) {
+    const firstName = dto.firstName.trim();
+    const lastName = dto.lastName.trim();
+
+    if (!firstName || !lastName) {
+      throw new BadRequestException('First name and last name are required');
+    }
+
+    // Only update allowlisted fields; never accept userId or permission flags from the client.
+    return this.prisma.user.update({
+      where: { id: userId, isActive: true },
+      data: { firstName, lastName },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
         updatedAt: true,
       },
     });

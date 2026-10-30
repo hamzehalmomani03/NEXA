@@ -311,6 +311,7 @@ export type UserWhereInput = {
   memberships?: Prisma.OrganizationMemberListRelationFilter
   inventoryMovements?: Prisma.InventoryMovementListRelationFilter
   sales?: Prisma.SaleListRelationFilter
+  sentOrganizationInvites?: Prisma.OrganizationInvitationListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -334,6 +335,7 @@ export type UserOrderByWithRelationInput = {
   memberships?: Prisma.OrganizationMemberOrderByRelationAggregateInput
   inventoryMovements?: Prisma.InventoryMovementOrderByRelationAggregateInput
   sales?: Prisma.SaleOrderByRelationAggregateInput
+  sentOrganizationInvites?: Prisma.OrganizationInvitationOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -360,6 +362,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   memberships?: Prisma.OrganizationMemberListRelationFilter
   inventoryMovements?: Prisma.InventoryMovementListRelationFilter
   sales?: Prisma.SaleListRelationFilter
+  sentOrganizationInvites?: Prisma.OrganizationInvitationListRelationFilter
 }, "id" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -431,6 +434,7 @@ export type UserCreateInput = {
   memberships?: Prisma.OrganizationMemberCreateNestedManyWithoutUserInput
   inventoryMovements?: Prisma.InventoryMovementCreateNestedManyWithoutUserInput
   sales?: Prisma.SaleCreateNestedManyWithoutUserInput
+  sentOrganizationInvites?: Prisma.OrganizationInvitationCreateNestedManyWithoutInvitedByInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -454,6 +458,7 @@ export type UserUncheckedCreateInput = {
   memberships?: Prisma.OrganizationMemberUncheckedCreateNestedManyWithoutUserInput
   inventoryMovements?: Prisma.InventoryMovementUncheckedCreateNestedManyWithoutUserInput
   sales?: Prisma.SaleUncheckedCreateNestedManyWithoutUserInput
+  sentOrganizationInvites?: Prisma.OrganizationInvitationUncheckedCreateNestedManyWithoutInvitedByInput
 }
 
 export type UserUpdateInput = {
@@ -477,6 +482,7 @@ export type UserUpdateInput = {
   memberships?: Prisma.OrganizationMemberUpdateManyWithoutUserNestedInput
   inventoryMovements?: Prisma.InventoryMovementUpdateManyWithoutUserNestedInput
   sales?: Prisma.SaleUpdateManyWithoutUserNestedInput
+  sentOrganizationInvites?: Prisma.OrganizationInvitationUpdateManyWithoutInvitedByNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -500,6 +506,7 @@ export type UserUncheckedUpdateInput = {
   memberships?: Prisma.OrganizationMemberUncheckedUpdateManyWithoutUserNestedInput
   inventoryMovements?: Prisma.InventoryMovementUncheckedUpdateManyWithoutUserNestedInput
   sales?: Prisma.SaleUncheckedUpdateManyWithoutUserNestedInput
+  sentOrganizationInvites?: Prisma.OrganizationInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -692,6 +699,20 @@ export type UserUpdateOneRequiredWithoutMembershipsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutMembershipsInput, Prisma.UserUpdateWithoutMembershipsInput>, Prisma.UserUncheckedUpdateWithoutMembershipsInput>
 }
 
+export type UserCreateNestedOneWithoutSentOrganizationInvitesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutSentOrganizationInvitesInput, Prisma.UserUncheckedCreateWithoutSentOrganizationInvitesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutSentOrganizationInvitesInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutSentOrganizationInvitesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutSentOrganizationInvitesInput, Prisma.UserUncheckedCreateWithoutSentOrganizationInvitesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutSentOrganizationInvitesInput
+  upsert?: Prisma.UserUpsertWithoutSentOrganizationInvitesInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutSentOrganizationInvitesInput, Prisma.UserUpdateWithoutSentOrganizationInvitesInput>, Prisma.UserUncheckedUpdateWithoutSentOrganizationInvitesInput>
+}
+
 export type UserCreateNestedOneWithoutInventoryMovementsInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutInventoryMovementsInput, Prisma.UserUncheckedCreateWithoutInventoryMovementsInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutInventoryMovementsInput
@@ -740,6 +761,7 @@ export type UserCreateWithoutMembershipsInput = {
   updatedAt?: Date | string
   inventoryMovements?: Prisma.InventoryMovementCreateNestedManyWithoutUserInput
   sales?: Prisma.SaleCreateNestedManyWithoutUserInput
+  sentOrganizationInvites?: Prisma.OrganizationInvitationCreateNestedManyWithoutInvitedByInput
 }
 
 export type UserUncheckedCreateWithoutMembershipsInput = {
@@ -762,6 +784,7 @@ export type UserUncheckedCreateWithoutMembershipsInput = {
   updatedAt?: Date | string
   inventoryMovements?: Prisma.InventoryMovementUncheckedCreateNestedManyWithoutUserInput
   sales?: Prisma.SaleUncheckedCreateNestedManyWithoutUserInput
+  sentOrganizationInvites?: Prisma.OrganizationInvitationUncheckedCreateNestedManyWithoutInvitedByInput
 }
 
 export type UserCreateOrConnectWithoutMembershipsInput = {
@@ -800,6 +823,7 @@ export type UserUpdateWithoutMembershipsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   inventoryMovements?: Prisma.InventoryMovementUpdateManyWithoutUserNestedInput
   sales?: Prisma.SaleUpdateManyWithoutUserNestedInput
+  sentOrganizationInvites?: Prisma.OrganizationInvitationUpdateManyWithoutInvitedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutMembershipsInput = {
@@ -820,6 +844,115 @@ export type UserUncheckedUpdateWithoutMembershipsInput = {
   twoFactorRecoveryCodeHashes?: Prisma.UserUpdatetwoFactorRecoveryCodeHashesInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  inventoryMovements?: Prisma.InventoryMovementUncheckedUpdateManyWithoutUserNestedInput
+  sales?: Prisma.SaleUncheckedUpdateManyWithoutUserNestedInput
+  sentOrganizationInvites?: Prisma.OrganizationInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
+}
+
+export type UserCreateWithoutSentOrganizationInvitesInput = {
+  id?: string
+  email: string
+  passwordHash: string
+  firstName: string
+  lastName: string
+  isActive?: boolean
+  isSystemAdmin?: boolean
+  failedLoginAttempts?: number
+  lockedUntil?: Date | string | null
+  passwordResetTokenHash?: string | null
+  passwordResetExpiresAt?: Date | string | null
+  twoFactorEnabled?: boolean
+  twoFactorSecretEncrypted?: string | null
+  twoFactorPendingSecretEncrypted?: string | null
+  twoFactorRecoveryCodeHashes?: Prisma.UserCreatetwoFactorRecoveryCodeHashesInput | string[]
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  memberships?: Prisma.OrganizationMemberCreateNestedManyWithoutUserInput
+  inventoryMovements?: Prisma.InventoryMovementCreateNestedManyWithoutUserInput
+  sales?: Prisma.SaleCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutSentOrganizationInvitesInput = {
+  id?: string
+  email: string
+  passwordHash: string
+  firstName: string
+  lastName: string
+  isActive?: boolean
+  isSystemAdmin?: boolean
+  failedLoginAttempts?: number
+  lockedUntil?: Date | string | null
+  passwordResetTokenHash?: string | null
+  passwordResetExpiresAt?: Date | string | null
+  twoFactorEnabled?: boolean
+  twoFactorSecretEncrypted?: string | null
+  twoFactorPendingSecretEncrypted?: string | null
+  twoFactorRecoveryCodeHashes?: Prisma.UserCreatetwoFactorRecoveryCodeHashesInput | string[]
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  memberships?: Prisma.OrganizationMemberUncheckedCreateNestedManyWithoutUserInput
+  inventoryMovements?: Prisma.InventoryMovementUncheckedCreateNestedManyWithoutUserInput
+  sales?: Prisma.SaleUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutSentOrganizationInvitesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutSentOrganizationInvitesInput, Prisma.UserUncheckedCreateWithoutSentOrganizationInvitesInput>
+}
+
+export type UserUpsertWithoutSentOrganizationInvitesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutSentOrganizationInvitesInput, Prisma.UserUncheckedUpdateWithoutSentOrganizationInvitesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutSentOrganizationInvitesInput, Prisma.UserUncheckedCreateWithoutSentOrganizationInvitesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutSentOrganizationInvitesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutSentOrganizationInvitesInput, Prisma.UserUncheckedUpdateWithoutSentOrganizationInvitesInput>
+}
+
+export type UserUpdateWithoutSentOrganizationInvitesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  firstName?: Prisma.StringFieldUpdateOperationsInput | string
+  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isSystemAdmin?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  failedLoginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordResetTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  twoFactorEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  twoFactorSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  twoFactorPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  twoFactorRecoveryCodeHashes?: Prisma.UserUpdatetwoFactorRecoveryCodeHashesInput | string[]
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  memberships?: Prisma.OrganizationMemberUpdateManyWithoutUserNestedInput
+  inventoryMovements?: Prisma.InventoryMovementUpdateManyWithoutUserNestedInput
+  sales?: Prisma.SaleUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutSentOrganizationInvitesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  firstName?: Prisma.StringFieldUpdateOperationsInput | string
+  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isSystemAdmin?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  failedLoginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordResetTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordResetExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  twoFactorEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  twoFactorSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  twoFactorPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  twoFactorRecoveryCodeHashes?: Prisma.UserUpdatetwoFactorRecoveryCodeHashesInput | string[]
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  memberships?: Prisma.OrganizationMemberUncheckedUpdateManyWithoutUserNestedInput
   inventoryMovements?: Prisma.InventoryMovementUncheckedUpdateManyWithoutUserNestedInput
   sales?: Prisma.SaleUncheckedUpdateManyWithoutUserNestedInput
 }
@@ -844,6 +977,7 @@ export type UserCreateWithoutInventoryMovementsInput = {
   updatedAt?: Date | string
   memberships?: Prisma.OrganizationMemberCreateNestedManyWithoutUserInput
   sales?: Prisma.SaleCreateNestedManyWithoutUserInput
+  sentOrganizationInvites?: Prisma.OrganizationInvitationCreateNestedManyWithoutInvitedByInput
 }
 
 export type UserUncheckedCreateWithoutInventoryMovementsInput = {
@@ -866,6 +1000,7 @@ export type UserUncheckedCreateWithoutInventoryMovementsInput = {
   updatedAt?: Date | string
   memberships?: Prisma.OrganizationMemberUncheckedCreateNestedManyWithoutUserInput
   sales?: Prisma.SaleUncheckedCreateNestedManyWithoutUserInput
+  sentOrganizationInvites?: Prisma.OrganizationInvitationUncheckedCreateNestedManyWithoutInvitedByInput
 }
 
 export type UserCreateOrConnectWithoutInventoryMovementsInput = {
@@ -904,6 +1039,7 @@ export type UserUpdateWithoutInventoryMovementsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   memberships?: Prisma.OrganizationMemberUpdateManyWithoutUserNestedInput
   sales?: Prisma.SaleUpdateManyWithoutUserNestedInput
+  sentOrganizationInvites?: Prisma.OrganizationInvitationUpdateManyWithoutInvitedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutInventoryMovementsInput = {
@@ -926,6 +1062,7 @@ export type UserUncheckedUpdateWithoutInventoryMovementsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   memberships?: Prisma.OrganizationMemberUncheckedUpdateManyWithoutUserNestedInput
   sales?: Prisma.SaleUncheckedUpdateManyWithoutUserNestedInput
+  sentOrganizationInvites?: Prisma.OrganizationInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
 }
 
 export type UserCreateWithoutSalesInput = {
@@ -948,6 +1085,7 @@ export type UserCreateWithoutSalesInput = {
   updatedAt?: Date | string
   memberships?: Prisma.OrganizationMemberCreateNestedManyWithoutUserInput
   inventoryMovements?: Prisma.InventoryMovementCreateNestedManyWithoutUserInput
+  sentOrganizationInvites?: Prisma.OrganizationInvitationCreateNestedManyWithoutInvitedByInput
 }
 
 export type UserUncheckedCreateWithoutSalesInput = {
@@ -970,6 +1108,7 @@ export type UserUncheckedCreateWithoutSalesInput = {
   updatedAt?: Date | string
   memberships?: Prisma.OrganizationMemberUncheckedCreateNestedManyWithoutUserInput
   inventoryMovements?: Prisma.InventoryMovementUncheckedCreateNestedManyWithoutUserInput
+  sentOrganizationInvites?: Prisma.OrganizationInvitationUncheckedCreateNestedManyWithoutInvitedByInput
 }
 
 export type UserCreateOrConnectWithoutSalesInput = {
@@ -1008,6 +1147,7 @@ export type UserUpdateWithoutSalesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   memberships?: Prisma.OrganizationMemberUpdateManyWithoutUserNestedInput
   inventoryMovements?: Prisma.InventoryMovementUpdateManyWithoutUserNestedInput
+  sentOrganizationInvites?: Prisma.OrganizationInvitationUpdateManyWithoutInvitedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSalesInput = {
@@ -1030,6 +1170,7 @@ export type UserUncheckedUpdateWithoutSalesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   memberships?: Prisma.OrganizationMemberUncheckedUpdateManyWithoutUserNestedInput
   inventoryMovements?: Prisma.InventoryMovementUncheckedUpdateManyWithoutUserNestedInput
+  sentOrganizationInvites?: Prisma.OrganizationInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
 }
 
 
@@ -1041,12 +1182,14 @@ export type UserCountOutputType = {
   memberships: number
   inventoryMovements: number
   sales: number
+  sentOrganizationInvites: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   memberships?: boolean | UserCountOutputTypeCountMembershipsArgs
   inventoryMovements?: boolean | UserCountOutputTypeCountInventoryMovementsArgs
   sales?: boolean | UserCountOutputTypeCountSalesArgs
+  sentOrganizationInvites?: boolean | UserCountOutputTypeCountSentOrganizationInvitesArgs
 }
 
 /**
@@ -1080,6 +1223,13 @@ export type UserCountOutputTypeCountSalesArgs<ExtArgs extends runtime.Types.Exte
   where?: Prisma.SaleWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountSentOrganizationInvitesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.OrganizationInvitationWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1102,6 +1252,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   memberships?: boolean | Prisma.User$membershipsArgs<ExtArgs>
   inventoryMovements?: boolean | Prisma.User$inventoryMovementsArgs<ExtArgs>
   sales?: boolean | Prisma.User$salesArgs<ExtArgs>
+  sentOrganizationInvites?: boolean | Prisma.User$sentOrganizationInvitesArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -1170,6 +1321,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   memberships?: boolean | Prisma.User$membershipsArgs<ExtArgs>
   inventoryMovements?: boolean | Prisma.User$inventoryMovementsArgs<ExtArgs>
   sales?: boolean | Prisma.User$salesArgs<ExtArgs>
+  sentOrganizationInvites?: boolean | Prisma.User$sentOrganizationInvitesArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -1181,6 +1333,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     memberships: Prisma.$OrganizationMemberPayload<ExtArgs>[]
     inventoryMovements: Prisma.$InventoryMovementPayload<ExtArgs>[]
     sales: Prisma.$SalePayload<ExtArgs>[]
+    sentOrganizationInvites: Prisma.$OrganizationInvitationPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1597,6 +1750,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   memberships<T extends Prisma.User$membershipsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$membershipsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrganizationMemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   inventoryMovements<T extends Prisma.User$inventoryMovementsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$inventoryMovementsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$InventoryMovementPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   sales<T extends Prisma.User$salesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$salesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SalePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  sentOrganizationInvites<T extends Prisma.User$sentOrganizationInvitesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$sentOrganizationInvitesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrganizationInvitationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2105,6 +2259,30 @@ export type User$salesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs
   take?: number
   skip?: number
   distinct?: Prisma.SaleScalarFieldEnum | Prisma.SaleScalarFieldEnum[]
+}
+
+/**
+ * User.sentOrganizationInvites
+ */
+export type User$sentOrganizationInvitesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the OrganizationInvitation
+   */
+  select?: Prisma.OrganizationInvitationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the OrganizationInvitation
+   */
+  omit?: Prisma.OrganizationInvitationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OrganizationInvitationInclude<ExtArgs> | null
+  where?: Prisma.OrganizationInvitationWhereInput
+  orderBy?: Prisma.OrganizationInvitationOrderByWithRelationInput | Prisma.OrganizationInvitationOrderByWithRelationInput[]
+  cursor?: Prisma.OrganizationInvitationWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.OrganizationInvitationScalarFieldEnum | Prisma.OrganizationInvitationScalarFieldEnum[]
 }
 
 /**

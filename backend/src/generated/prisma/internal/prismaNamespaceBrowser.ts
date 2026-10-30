@@ -54,6 +54,7 @@ export const ModelName = {
   User: 'User',
   Organization: 'Organization',
   OrganizationMember: 'OrganizationMember',
+  OrganizationInvitation: 'OrganizationInvitation',
   Product: 'Product',
   InventoryMovement: 'InventoryMovement',
   Sale: 'Sale',
@@ -122,6 +123,24 @@ export const OrganizationMemberScalarFieldEnum = {
 } as const
 
 export type OrganizationMemberScalarFieldEnum = (typeof OrganizationMemberScalarFieldEnum)[keyof typeof OrganizationMemberScalarFieldEnum]
+
+
+export const OrganizationInvitationScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  email: 'email',
+  role: 'role',
+  tokenHash: 'tokenHash',
+  status: 'status',
+  invitedById: 'invitedById',
+  expiresAt: 'expiresAt',
+  acceptedAt: 'acceptedAt',
+  revokedAt: 'revokedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type OrganizationInvitationScalarFieldEnum = (typeof OrganizationInvitationScalarFieldEnum)[keyof typeof OrganizationInvitationScalarFieldEnum]
 
 
 export const ProductScalarFieldEnum = {

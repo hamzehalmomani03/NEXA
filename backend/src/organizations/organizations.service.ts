@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
-import { OrganizationRole } from '../generated/prisma/client';
+import { MembershipStatus, OrganizationRole } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -124,6 +124,13 @@ export class OrganizationsService {
       await this.prisma.organizationMember.findMany({
         where: {
           userId,
+          status: MembershipStatus.ACTIVE,
+          organization: {
+            isActive: true,
+          },
+          user: {
+            isActive: true,
+          },
         },
         select: {
           role: true,
@@ -157,11 +164,16 @@ export class OrganizationsService {
     userId: string,
   ) {
     const membership =
-      await this.prisma.organizationMember.findUnique({
+      await this.prisma.organizationMember.findFirst({
         where: {
-          userId_organizationId: {
-            userId,
-            organizationId,
+          userId,
+          organizationId,
+          status: MembershipStatus.ACTIVE,
+          organization: {
+            isActive: true,
+          },
+          user: {
+            isActive: true,
           },
         },
         select: {
@@ -222,3 +234,4 @@ export class OrganizationsService {
     };
   }
 }
+

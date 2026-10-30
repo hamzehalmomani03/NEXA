@@ -15,9 +15,9 @@ type SettingsData = {
   industry: string;
   companyEmail: string;
   phone: string;
-  fullName: string;
+  firstName: string;
+  lastName: string;
   email: string;
-  jobTitle: string;
   language: string;
   timezone: string;
   currency: string;
@@ -34,9 +34,9 @@ const initialSettings: SettingsData = {
   industry: 'Retail & E-commerce',
   companyEmail: 'contact@nexa.com',
   phone: '',
-  fullName: 'Hamzeh Almomani',
-  email: 'hamzeh@nexa.com',
-  jobTitle: 'Workspace Owner',
+  firstName: '',
+  lastName: '',
+  email: '',
   language: 'English',
   timezone: 'Asia/Amman',
   currency: 'JOD',
@@ -55,7 +55,13 @@ const sections: {
   { name: 'Preferences', icon: '⚙', description: 'Language and regional settings' },
 ];
 
-export default function Settings() {
+type ProfileIdentity = Pick<SettingsData, 'firstName' | 'lastName' | 'email'>;
+
+type SettingsProps = {
+  onProfileUpdated?: (profile: ProfileIdentity) => void;
+};
+
+export default function Settings({ onProfileUpdated }: SettingsProps) {
   const { i18n } = useTranslation();
   const isArabic = i18n.language.startsWith('ar');
 
@@ -68,36 +74,78 @@ export default function Settings() {
     useState<SettingsSection>('General');
 
   
-const [settings, setSettings] = useState<SettingsData>(() => {
-  try {
-    const storedUser = localStorage.getItem('nexa_user');
+  const [settings, setSettings] = useState<SettingsData>(() => {
+    try {
+      const storedUser = localStorage.getItem('nexa_user');
+      if (!storedUser) return initialSettings;
 
-    if (!storedUser) return initialSettings;
+      const user = JSON.parse(storedUser) as {
+        firstName?: string;
+        lastName?: string;
+        email?: string;
+      };
 
-    const user = JSON.parse(storedUser) as {
-      firstName?: string;
-      lastName?: string;
-      email?: string;
-      name?: string;
-      displayName?: string;
-    };
+      return {
+        ...initialSettings,
+        firstName: user.firstName ?? '',
+        lastName: user.lastName ?? '',
+        email: user.email ?? '',
+      };
+    } catch {
+      return initialSettings;
+    }
+  });
 
-    const fullName =
-      [user.firstName, user.lastName].filter(Boolean).join(' ').trim() ||
-      user.displayName ||
-      user.name ||
-      user.email ||
-      '';
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileError, setProfileError] = useState('');
 
-    return {
-      ...initialSettings,
-      fullName,
-      email: user.email ?? '',
-    };
-  } catch {
-    return initialSettings;
-  }
-});
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function loadProfile() {
+      const token = localStorage.getItem('nexa_token');
+      if (!token) {
+        setProfileError('Please sign in again.');
+        setProfileLoading(false);
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_URL}/users/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+          signal: controller.signal,
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(
+            Array.isArray(data.message)
+              ? data.message.join(', ')
+              : data.message || 'Could not load your profile.',
+          );
+        }
+        if (!controller.signal.aborted) {
+          setSettings((current) => ({
+            ...current,
+            firstName: data.firstName,
+            lastName: data.lastName,
+            email: data.email,
+          }));
+        }
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          setProfileError(
+            error instanceof Error ? error.message : 'Could not load your profile.',
+          );
+        }
+      } finally {
+        if (!controller.signal.aborted) setProfileLoading(false);
+      }
+    }
+
+    void loadProfile();
+    return () => controller.abort();
+  }, [API_URL]);
 
   const [savedMessage, setSavedMessage] = useState('');
 
@@ -160,6 +208,7 @@ const [settings, setSettings] = useState<SettingsData>(() => {
   ) {
     setSettings((current) => ({ ...current, [key]: value }));
     setSavedMessage('');
+    setProfileError('');
   }
 
   function handleSave(event: FormEvent<HTMLFormElement>) {
@@ -170,6 +219,89 @@ const [settings, setSettings] = useState<SettingsData>(() => {
         'تم حفظ التغييرات خلال الجلسة الحالية.',
       ),
     );
+  }
+
+  async function handleProfileSave(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSavedMessage('');
+    setProfileError('');
+
+    const firstName = settings.firstName.trim();
+    const lastName = settings.lastName.trim();
+    if (!firstName || !lastName) {
+      setProfileError(t('First name and last name are required.', 'الاسم الأول واسم العائلة مطلوبان.'));
+      return;
+    }
+
+    const token = localStorage.getItem('nexa_token');
+    if (!token) {
+      setProfileError(t('Please sign in again.', 'يرجى تسجيل الدخول مرة أخرى.'));
+      return;
+    }
+
+    setProfileSaving(true);
+    try {
+      const response = await fetch(`${API_URL}/users/me`, {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ firstName, lastName }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(
+          Array.isArray(data.message)
+            ? data.message.join(', ')
+            : data.message || 'Could not save your profile.',
+        );
+      }
+
+      setSettings((current) => ({
+        ...current,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+      }));
+
+      // Keep other cached user properties intact, and only update name fields.
+      try {
+        const stored = localStorage.getItem('nexa_user');
+        const cachedUser: Record<string, unknown> = stored ? JSON.parse(stored) : {};
+        if (cachedUser && typeof cachedUser === 'object' && !Array.isArray(cachedUser)) {
+          const fullName = `${data.firstName} ${data.lastName}`.trim();
+          const updatedUser: Record<string, unknown> = {
+            ...cachedUser,
+            firstName: data.firstName,
+            lastName: data.lastName,
+            email: data.email,
+          };
+          if ('name' in cachedUser) updatedUser.name = fullName;
+          if ('displayName' in cachedUser) updatedUser.displayName = fullName;
+          localStorage.setItem('nexa_user', JSON.stringify(updatedUser));
+        }
+      } catch {
+        // Database update succeeded; local cache is a nonauthoritative convenience.
+      }
+
+      // Notify DashboardLayout so sidebar and Overview refresh without a page reload.
+      onProfileUpdated?.({
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+      });
+
+      setSavedMessage(t('Profile changes saved successfully.', 'تم حفظ معلومات الملف الشخصي بنجاح.'));
+    } catch (error) {
+      setProfileError(
+        error instanceof Error
+          ? error.message
+          : t('Could not save your profile.', 'تعذّر حفظ الملف الشخصي.'),
+      );
+    } finally {
+      setProfileSaving(false);
+    }
   }
 
   function handlePasswordChange(event: FormEvent<HTMLFormElement>) {
@@ -221,12 +353,14 @@ const [settings, setSettings] = useState<SettingsData>(() => {
     onChange: (value: string) => void,
     placeholder = '',
     type = 'text',
+    disabled = false,
   ) {
     return (
       <label className="settings-field">
         <span>{label}</span>
         <input
           type={type}
+          disabled={disabled}
           dir={type === 'email' || type === 'tel' ? 'ltr' : undefined}
           value={value}
           onChange={(event) => onChange(event.target.value)}
@@ -727,12 +861,15 @@ const [settings, setSettings] = useState<SettingsData>(() => {
 
           {/* PROFILE */}
           {activeSection === 'Profile' && (
-            <form onSubmit={handleSave}>
+            <form onSubmit={handleProfileSave}>
+              {profileError && (
+                <div className="settings-message" role="alert">{profileError}</div>
+              )}
               <section className="settings-panel">
                 <div className="settings-panel-heading">
                   <div className="settings-profile-avatar">
-                    {settings.fullName
-                      .split(/\s+/)
+                    {[settings.firstName, settings.lastName]
+                      .filter(Boolean)
                       .slice(0, 2)
                       .map((part) => part[0]?.toUpperCase())
                       .join('')}
@@ -751,26 +888,27 @@ const [settings, setSettings] = useState<SettingsData>(() => {
 
                 <div className="settings-form-grid">
                   {renderField(
-                    t('Full name', 'الاسم الكامل'),
-                    settings.fullName,
-                    (value) => updateSetting('fullName', value),
-                    t('Your full name', 'أدخل اسمك الكامل'),
+                    t('First name', 'الاسم الأول'),
+                    settings.firstName,
+                    (value) => updateSetting('firstName', value),
+                    t('Your first name', 'أدخل اسمك الأول'),
+                    'text',
+                    profileLoading || profileSaving,
                   )}
 
                   {renderField(
-                    t('Email address', 'البريد الإلكتروني'),
-                    settings.email,
-                    (value) => updateSetting('email', value),
-                    'you@company.com',
-                    'email',
+                    t('Last name', 'اسم العائلة'),
+                    settings.lastName,
+                    (value) => updateSetting('lastName', value),
+                    t('Your last name', 'أدخل اسم العائلة'),
+                    'text',
+                    profileLoading || profileSaving,
                   )}
 
-                  {renderField(
-                    t('Job title', 'المسمى الوظيفي'),
-                    settings.jobTitle,
-                    (value) => updateSetting('jobTitle', value),
-                    t('Your role', 'مسمّاك الوظيفي'),
-                  )}
+                  <label className="settings-field">
+                    <span>{t('Email address (read only)', 'البريد الإلكتروني (للعرض فقط)')}</span>
+                    <input type="email" dir="ltr" value={settings.email} readOnly />
+                  </label>
                 </div>
               </section>
 
@@ -782,8 +920,14 @@ const [settings, setSettings] = useState<SettingsData>(() => {
                   )}
                 </span>
 
-                <button className="settings-save-btn" type="submit">
-                  {t('Save changes', 'حفظ التغييرات')} <span>↗</span>
+                <button
+                  className="settings-save-btn"
+                  type="submit"
+                  disabled={profileLoading || profileSaving}
+                >
+                  {profileSaving
+                    ? t('Saving...', 'جارٍ الحفظ...')
+                    : t('Save changes', 'حفظ التغييرات')} <span>↗</span>
                 </button>
               </div>
             </form>
@@ -1321,8 +1465,8 @@ const [settings, setSettings] = useState<SettingsData>(() => {
             <span className="settings-bottom-separator">•</span>
             <span>
               {t(
-                'Settings are currently stored in page state only.',
-                'الإعدادات محفوظة في حالة الصفحة الحالية فقط.',
+                'Workspace and notification preferences are currently page-local; profile changes are saved to your account.',
+                'إعدادات مساحة العمل والإشعارات محلية حاليًا؛ تعديلات الملف الشخصي تُحفظ في حسابك.',
               )}
             </span>
           </div>

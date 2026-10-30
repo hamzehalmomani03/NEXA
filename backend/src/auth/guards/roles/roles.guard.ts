@@ -1,4 +1,3 @@
-
 import {
   CanActivate,
   ExecutionContext,
@@ -8,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 
-import { OrganizationRole } from '../../../generated/prisma/client';
+import { MembershipStatus, OrganizationRole } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { ROLES_KEY } from '../../decorators/roles/roles.decorator';
 
@@ -20,59 +19,56 @@ export class RolesGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const requiredRoles =
-      this.reflector.getAllAndOverride<OrganizationRole[]>(
-        ROLES_KEY,
-        [context.getHandler(), context.getClass()],
-      );
+    const requiredRoles = this.reflector.getAllAndOverride<OrganizationRole[]>(
+      ROLES_KEY,
+      [context.getHandler(), context.getClass()],
+    );
 
-    if (!requiredRoles || requiredRoles.length === 0) {
-      return true;
-    }
+    if (!requiredRoles || requiredRoles.length === 0) return true;
 
     const request = context.switchToHttp().getRequest();
-
-    const user = request.user as
-      | { userId: string; email: string }
-      | undefined;
+    const user = request.user as { userId: string; email: string } | undefined;
 
     if (!user?.userId) {
-      throw new UnauthorizedException(
-        'Authentication is required',
-      );
+      throw new UnauthorizedException('Authentication is required');
     }
 
-    const organizationId = request.body?.organizationId;
+    const paramId = request.params?.organizationId ?? request.params?.id;
+    const bodyId = request.body?.organizationId;
 
-    if (
-      typeof organizationId !== 'string' ||
-      organizationId.trim().length === 0
-    ) {
-      throw new ForbiddenException(
-        'A valid organization ID is required',
-      );
+    if (paramId && bodyId && paramId !== bodyId) {
+      throw new ForbiddenException('Organization ID mismatch');
     }
 
-    const membership =
-      await this.prisma.organizationMember.findUnique({
-        where: {
-          userId_organizationId: {
-            userId: user.userId,
-            organizationId,
-          },
+    const organizationId: unknown = paramId ?? bodyId;
+
+    if (typeof organizationId !== 'string' || !organizationId.trim()) {
+      throw new ForbiddenException('A valid organization ID is required');
+    }
+
+    const membership = await this.prisma.organizationMember.findUnique({
+      where: {
+        userId_organizationId: {
+          userId: user.userId,
+          organizationId,
         },
-      });
+      },
+      include: { organization: { select: { isActive: true } } },
+    });
 
     if (!membership) {
-      throw new ForbiddenException(
-        'You are not a member of this organization',
-      );
+      throw new ForbiddenException('You are not a member of this organization');
+    }
+
+    if (
+      membership.status !== MembershipStatus.ACTIVE ||
+      !membership.organization.isActive
+    ) {
+      throw new ForbiddenException('Your organization membership is not active');
     }
 
     if (!requiredRoles.includes(membership.role)) {
-      throw new ForbiddenException(
-        'You do not have permission to access this resource',
-      );
+      throw new ForbiddenException('You do not have permission to access this resource');
     }
 
     return true;

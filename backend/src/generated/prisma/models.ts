@@ -11,6 +11,7 @@
 export type * from './models/User.js'
 export type * from './models/Organization.js'
 export type * from './models/OrganizationMember.js'
+export type * from './models/OrganizationInvitation.js'
 export type * from './models/Product.js'
 export type * from './models/InventoryMovement.js'
 export type * from './models/Sale.js'

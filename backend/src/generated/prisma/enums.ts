@@ -29,6 +29,15 @@ export const MembershipStatus = {
 export type MembershipStatus = (typeof MembershipStatus)[keyof typeof MembershipStatus]
 
 
+export const InvitationStatus = {
+  PENDING: 'PENDING',
+  ACCEPTED: 'ACCEPTED',
+  REVOKED: 'REVOKED'
+} as const
+
+export type InvitationStatus = (typeof InvitationStatus)[keyof typeof InvitationStatus]
+
+
 export const ProductStatus = {
   ACTIVE: 'ACTIVE',
   ARCHIVED: 'ARCHIVED'

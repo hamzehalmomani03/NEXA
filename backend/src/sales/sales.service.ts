@@ -25,9 +25,22 @@ export class SalesService {
             organizationId,
           },
         },
+        include: {
+          user: {
+            select: { isActive: true },
+          },
+          organization: {
+            select: { isActive: true },
+          },
+        },
       });
 
-    if (!membership || membership.status !== 'ACTIVE') {
+    if (
+      !membership ||
+      membership.status !== 'ACTIVE' ||
+      !membership.user.isActive ||
+      !membership.organization.isActive
+    ) {
       throw new ForbiddenException(
         'You are not an active member of this organization',
       );

@@ -4,7 +4,7 @@ import { motion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 import PlatformAdminDashboard from './PlatformAdminDashboard';
 import ResetPassword from './ResetPassword';
-
+import AcceptInvitation from './AcceptInvitation';
 import {
   Link,
   Navigate,
@@ -49,6 +49,27 @@ type Sale = {
   items: SaleItem[];
 };
 
+type DashboardUser = {
+  id?: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  isSystemAdmin?: boolean;
+};
+
+function readStoredUser(): DashboardUser | null {
+  try {
+    const text = localStorage.getItem('nexa_user');
+    const value: unknown = text ? JSON.parse(text) : null;
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+      return null;
+    }
+    return value as DashboardUser;
+  } catch {
+    return null;
+  }
+}
+
 function tr(language: string, en: string, ar: string) {
   return language.startsWith('ar') ? ar : en;
 }
@@ -75,36 +96,16 @@ const navigationTranslations: Record<string, string> = {
   Settings: 'الإعدادات',
 };
 
-function Overview() {
+function Overview({ user }: { user: DashboardUser | null }) {
   const { i18n } = useTranslation();
   const language = i18n.language;
   const locale = language.startsWith('ar') ? 'ar-JO' : 'en-US';
 
-  const userText = localStorage.getItem('nexa_user');
-
-  let overviewUser: {
-    firstName?: string;
-    lastName?: string;
-    email?: string;
-  } | null = null;
-
-  try {
-    overviewUser = userText
-      ? (JSON.parse(userText) as {
-          firstName?: string;
-          lastName?: string;
-          email?: string;
-        })
-      : null;
-  } catch {
-    overviewUser = null;
-  }
-
   const displayName =
-    [overviewUser?.firstName, overviewUser?.lastName]
+    [user?.firstName, user?.lastName]
       .filter(Boolean)
       .join(' ') ||
-    overviewUser?.email ||
+    user?.email ||
     'NEXA User';
 
   const [sales, setSales] = useState<Sale[]>([]);
@@ -853,16 +854,9 @@ function DashboardLayout() {
     }[currentPath] ?? 'Overview');
 
   const organizationText = localStorage.getItem('nexa_organization');
-  const userText = localStorage.getItem('nexa_user');
+  const [user, setUser] = useState<DashboardUser | null>(readStoredUser);
 
   let organization: { name?: string } | null = null;
-  let user: {
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-  isSystemAdmin?: boolean;
-} | null = null;
-
   try {
     organization = organizationText
       ? (JSON.parse(organizationText) as { name?: string })
@@ -871,17 +865,12 @@ function DashboardLayout() {
     organization = null;
   }
 
-  try {
-    user = userText
-  ? (JSON.parse(userText) as {
-      firstName?: string;
-      lastName?: string;
-      email?: string;
-      isSystemAdmin?: boolean;
-    })
-  : null;
-  } catch {
-    user = null;
+  function handleProfileUpdated(profile: {
+    firstName: string;
+    lastName: string;
+    email: string;
+  }) {
+    setUser((current) => ({ ...current, ...profile }));
   }
 
   const displayName =
@@ -912,7 +901,20 @@ function DashboardLayout() {
     <div className="app-shell">
       <aside className="sidebar">
         <Link className="brand" to="/overview" aria-label="NEXA home">
-          <span className="brand-mark">N</span>
+          <img
+            className="brand-mark"
+            src="/nexa-icon.png"
+            alt=""
+            aria-hidden="true"
+            style={{
+              display: 'block',
+              width: 42,
+              height: 42,
+              padding: 0,
+              objectFit: 'cover',
+              borderRadius: 12,
+            }}
+          />
           <span className="brand-name">
             NEXA<span>.</span>
           </span>
@@ -1046,8 +1048,14 @@ function DashboardLayout() {
           <div className="header-brand">
             <img
               className="header-emblem"
-              src="https://commons.wikimedia.org/wiki/Special:FilePath/Jordan_Coat_of_Arms.jpg"
-              alt="شعار المملكة الأردنية الهاشمية"
+              src="/nexa-icon.png"
+              alt="NEXA Logo"
+              style={{
+                width: 54,
+                height: 54,
+                objectFit: 'cover',
+                borderRadius: 13,
+              }}
             />
             <span className="brand-name">NEXA</span>
           </div>
@@ -1153,7 +1161,7 @@ function DashboardLayout() {
         <div className="dashboard">
           <Routes>
             <Route path="/" element={<Navigate to="/overview" replace />} />
-            <Route path="/overview" element={<Overview />} />
+            <Route path="/overview" element={<Overview user={user} />} />
             <Route path="/products" element={<Products />} />
             <Route path="/inventory" element={<Inventory />} />
             <Route path="/sales" element={<Sales />} />
@@ -1161,7 +1169,7 @@ function DashboardLayout() {
             <Route path="/customers" element={<Customers />} />
             <Route path="/reports" element={<Reports />} />
             <Route path="/team" element={<Team />} />
-            <Route path="/settings" element={<Settings />} />
+            <Route path="/settings" element={<Settings onProfileUpdated={handleProfileUpdated} />} />
             <Route path="*" element={<Navigate to="/overview" replace />} />
           </Routes>
         </div>
@@ -1190,13 +1198,22 @@ function DashboardLayout() {
   );
 }
 
+
 function App() {
   const token = localStorage.getItem('nexa_token');
   const location = useLocation();
-  if (location.pathname === '/reset-password') {
-  return <ResetPassword />;
-}
 
+  // Invitation page
+  if (location.pathname === '/accept-invitation') {
+    return <AcceptInvitation />;
+  }
+
+  // Reset password page
+  if (location.pathname === '/reset-password') {
+    return <ResetPassword />;
+  }
+
+  // Platform admin
   if (location.pathname.startsWith('/platform-admin')) {
     if (!token) {
       return <Navigate to="/login" replace />;
@@ -1205,21 +1222,20 @@ function App() {
     return <PlatformAdminDashboard />;
   }
 
+  // Login
   if (location.pathname === '/login') {
     return token ? (
       <Navigate to="/products" replace />
     ) : (
-      <>
-        <Login />
-      </>
+      <Login />
     );
   }
 
+  // Protected routes
   if (!token) {
     return <Navigate to="/login" replace />;
   }
 
   return <DashboardLayout />;
 }
-
 export default App;

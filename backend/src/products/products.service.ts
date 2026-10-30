@@ -29,10 +29,22 @@ export class ProductsService {
       where: {
         userId_organizationId: { userId, organizationId },
       },
-      include: { user: true },
+      include: {
+        user: true,
+        organization: {
+          select: {
+            isActive: true,
+          },
+        },
+      },
     });
 
-    if (!membership || !membership.user.isActive) {
+    if (
+      !membership ||
+      membership.status !== 'ACTIVE' ||
+      !membership.user.isActive ||
+      !membership.organization.isActive
+    ) {
       throw new NotFoundException('Organization not found');
     }
 
@@ -195,3 +207,5 @@ export class ProductsService {
     };
   }
 }
+
+

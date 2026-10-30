@@ -7,7 +7,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 
 import { OrganizationsService } from './organizations.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { OrganizationRole } from '../generated/prisma/client';
+import { MembershipStatus, OrganizationRole } from '../generated/prisma/client';
 
 describe('OrganizationsService', () => {
   let service: OrganizationsService;
@@ -31,6 +31,7 @@ describe('OrganizationsService', () => {
     organizationMember: {
       findMany: jest.fn(),
       findUnique: jest.fn(),
+      findFirst: jest.fn(),
       create: jest.fn(),
     },
     user: {
@@ -102,7 +103,7 @@ describe('OrganizationsService', () => {
         },
       };
 
-      prismaMock.organizationMember.findUnique.mockResolvedValue(
+      prismaMock.organizationMember.findFirst.mockResolvedValue(
         membership,
       );
 
@@ -138,13 +139,14 @@ describe('OrganizationsService', () => {
       });
 
       expect(
-        prismaMock.organizationMember.findUnique,
+        prismaMock.organizationMember.findFirst,
       ).toHaveBeenCalledWith({
         where: {
-          userId_organizationId: {
-            userId,
-            organizationId,
-          },
+          userId,
+          organizationId,
+          status: MembershipStatus.ACTIVE,
+          organization: { isActive: true },
+          user: { isActive: true },
         },
         select: {
           role: true,
@@ -181,7 +183,7 @@ describe('OrganizationsService', () => {
     });
 
     it('should reject a user who is not a member of the organization', async () => {
-      prismaMock.organizationMember.findUnique.mockResolvedValue(
+      prismaMock.organizationMember.findFirst.mockResolvedValue(
         null,
       );
 
@@ -190,14 +192,15 @@ describe('OrganizationsService', () => {
       ).rejects.toThrow(NotFoundException);
 
       expect(
-        prismaMock.organizationMember.findUnique,
+        prismaMock.organizationMember.findFirst,
       ).toHaveBeenCalledWith(
         expect.objectContaining({
           where: {
-            userId_organizationId: {
-              userId,
-              organizationId,
-            },
+            userId,
+            organizationId,
+            status: MembershipStatus.ACTIVE,
+            organization: { isActive: true },
+            user: { isActive: true },
           },
         }),
       );
@@ -433,3 +436,4 @@ describe('OrganizationsService', () => {
     });
   });
 });
+

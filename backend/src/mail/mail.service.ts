@@ -1,3 +1,4 @@
+
 import {
   Injectable,
   InternalServerErrorException,
@@ -14,6 +15,7 @@ function escapeHtml(value: string): string {
       '"': '&quot;',
       "'": '&#39;',
     };
+
     return entities[char];
   });
 }
@@ -38,7 +40,10 @@ export class MailService {
     });
   }
 
-  async sendPasswordResetEmail(recipient: string, resetUrl: string): Promise<void> {
+  async sendPasswordResetEmail(
+    recipient: string,
+    resetUrl: string,
+  ): Promise<void> {
     try {
       await this.transporter.sendMail({
         from: {
@@ -70,9 +75,25 @@ export class MailService {
           </div>
         `,
       });
-    } catch {
-      console.error('NEXA email delivery failed.');
-      throw new InternalServerErrorException('Unable to send email at this time');
+    } catch (error: unknown) {
+      const mailError = error instanceof Error
+        ? error as Error & {
+            code?: string;
+            responseCode?: number;
+            command?: string;
+          }
+        : undefined;
+
+      console.error('NEXA password reset email delivery failed.', {
+        message: mailError?.message ?? 'Unknown email delivery error',
+        code: mailError?.code,
+        responseCode: mailError?.responseCode,
+        command: mailError?.command,
+      });
+
+      throw new InternalServerErrorException(
+        'Unable to send email at this time',
+      );
     }
   }
 
@@ -124,9 +145,28 @@ export class MailService {
           </div>
         `,
       });
-    } catch {
-      console.error('NEXA organization invitation email delivery failed.');
-      throw new InternalServerErrorException('Unable to send invitation email at this time');
+    } catch (error: unknown) {
+      const mailError = error instanceof Error
+        ? error as Error & {
+            code?: string;
+            responseCode?: number;
+            command?: string;
+          }
+        : undefined;
+
+      console.error(
+        'NEXA organization invitation email delivery failed.',
+        {
+          message: mailError?.message ?? 'Unknown email delivery error',
+          code: mailError?.code,
+          responseCode: mailError?.responseCode,
+          command: mailError?.command,
+        },
+      );
+
+      throw new InternalServerErrorException(
+        'Unable to send invitation email at this time',
+      );
     }
   }
 }

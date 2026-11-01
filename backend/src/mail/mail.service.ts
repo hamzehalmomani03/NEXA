@@ -4,7 +4,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as nodemailer from 'nodemailer';
+import { google } from 'googleapis';
 
 function escapeHtml(value: string): string {
   return value.replace(/[&<>"']/g, (char) => {
@@ -20,23 +20,94 @@ function escapeHtml(value: string): string {
   });
 }
 
+function encodeBase64Url(value: string): string {
+  return Buffer.from(value, 'utf8')
+    .toString('base64')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+}
+
 @Injectable()
 export class MailService {
-  private readonly transporter: nodemailer.Transporter;
+  constructor(private readonly configService: ConfigService) {}
 
-  constructor(private readonly configService: ConfigService) {
-    const user = this.configService.get<string>('SMTP_USER');
-    const pass = this.configService.get<string>('SMTP_PASS');
+  private async sendEmail(
+    recipient: string,
+    subject: string,
+    text: string,
+    html: string,
+  ): Promise<void> {
+    const clientId = this.configService.get<string>('GMAIL_CLIENT_ID');
+    const clientSecret = this.configService.get<string>(
+      'GMAIL_CLIENT_SECRET',
+    );
+    const redirectUri = this.configService.get<string>(
+      'GMAIL_REDIRECT_URI',
+    );
+    const refreshToken = this.configService.get<string>(
+      'GMAIL_REFRESH_TOKEN',
+    );
+    const senderEmail = this.configService.get<string>(
+      'GMAIL_SENDER_EMAIL',
+    );
 
-    if (!user || !pass) {
-      throw new Error('SMTP_USER and SMTP_PASS must be configured');
+    if (
+      !clientId ||
+      !clientSecret ||
+      !redirectUri ||
+      !refreshToken ||
+      !senderEmail
+    ) {
+      throw new Error('Gmail API environment variables are missing');
     }
 
-    this.transporter = nodemailer.createTransport({
-      host: this.configService.get<string>('SMTP_HOST', 'smtp.gmail.com'),
-      port: Number(this.configService.get('SMTP_PORT') ?? 587),
-      secure: false,
-      auth: { user, pass },
+    const auth = new google.auth.OAuth2(
+      clientId,
+      clientSecret,
+      redirectUri,
+    );
+
+    auth.setCredentials({
+      refresh_token: refreshToken,
+    });
+
+    const gmail = google.gmail({
+      version: 'v1',
+      auth,
+    });
+
+    const encodedSubject = Buffer.from(subject, 'utf8').toString(
+      'base64',
+    );
+
+    const boundary = 'NEXA_EMAIL_BOUNDARY';
+
+    const rawMessage = [
+      `From: NEXA <${senderEmail}>`,
+      `To: ${recipient}`,
+      `Subject: =?UTF-8?B?${encodedSubject}?=`,
+      'MIME-Version: 1.0',
+      `Content-Type: multipart/alternative; boundary="${boundary}"`,
+      '',
+      `--${boundary}`,
+      'Content-Type: text/plain; charset="UTF-8"',
+      'Content-Transfer-Encoding: base64',
+      '',
+      Buffer.from(text, 'utf8').toString('base64'),
+      `--${boundary}`,
+      'Content-Type: text/html; charset="UTF-8"',
+      'Content-Transfer-Encoding: base64',
+      '',
+      Buffer.from(html, 'utf8').toString('base64'),
+      `--${boundary}--`,
+    ].join('\r\n');
+
+    await gmail.users.messages.send({
+      userId: 'me',
+      requestBody: {
+        raw: encodeBase64Url(rawMessage),
+      },
     });
   }
 
@@ -45,50 +116,37 @@ export class MailService {
     resetUrl: string,
   ): Promise<void> {
     try {
-      await this.transporter.sendMail({
-        from: {
-          name: 'NEXA',
-          address: this.configService.get<string>('SMTP_USER')!,
-        },
-        to: recipient,
-        subject: 'Reset Your NEXA Password',
-        text: [
+      const safeUrl = escapeHtml(resetUrl);
+
+      await this.sendEmail(
+        recipient,
+        'Reset Your NEXA Password',
+        [
           'We received a request to reset your NEXA password.',
           '',
           `Open this link to choose a new password: ${resetUrl}`,
           '',
           'If you did not request this, you can ignore this email.',
         ].join('\n'),
-        html: `
+        `
           <div style="font-family: Arial, sans-serif; max-width: 560px; margin: auto;">
             <h2>Reset your NEXA password</h2>
             <p>We received a request to reset your password.</p>
             <p>
-              <a href="${resetUrl}"
+              <a href="${safeUrl}"
                  style="display:inline-block;padding:12px 20px;background:#34d399;color:#052e24;text-decoration:none;border-radius:8px;">
                 Reset Password
               </a>
             </p>
             <p>If the button does not work, open this link:</p>
-            <p><a href="${resetUrl}">${resetUrl}</a></p>
+            <p><a href="${safeUrl}">${safeUrl}</a></p>
             <p>If you did not request this, you can ignore this email.</p>
           </div>
         `,
-      });
+      );
     } catch (error: unknown) {
-      const mailError = error instanceof Error
-        ? error as Error & {
-            code?: string;
-            responseCode?: number;
-            command?: string;
-          }
-        : undefined;
-
       console.error('NEXA password reset email delivery failed.', {
-        message: mailError?.message ?? 'Unknown email delivery error',
-        code: mailError?.code,
-        responseCode: mailError?.responseCode,
-        command: mailError?.command,
+        message: error instanceof Error ? error.message : 'Unknown error',
       });
 
       throw new InternalServerErrorException(
@@ -108,14 +166,10 @@ export class MailService {
     const safeUrl = escapeHtml(invitationUrl);
 
     try {
-      await this.transporter.sendMail({
-        from: {
-          name: 'NEXA',
-          address: this.configService.get<string>('SMTP_USER')!,
-        },
-        to: recipient,
-        subject: `Invitation to join ${organizationName} on NEXA`,
-        text: [
+      await this.sendEmail(
+        recipient,
+        `Invitation to join ${organizationName} on NEXA`,
+        [
           `You have been invited to join ${organizationName} on NEXA.`,
           `Role: ${role}`,
           '',
@@ -123,7 +177,7 @@ export class MailService {
           '',
           'This invitation expires in 7 days. If you did not expect this invitation, ignore this message.',
         ].join('\n'),
-        html: `
+        `
           <div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;color:#102a22">
             <div style="background:#071a15;padding:22px;border-radius:14px 14px 0 0">
               <h1 style="color:#34d399;margin:0;letter-spacing:3px">NEXA</h1>
@@ -140,27 +194,16 @@ export class MailService {
               </p>
               <p>If the button doesn't work, open this link:</p>
               <p><a href="${safeUrl}">${safeUrl}</a></p>
-              <p style="color:#536c61;font-size:13px">Expires in 7 days. If you did not expect this email, ignore it.</p>
+              <p style="color:#536c61;font-size:13px">Expires in 7 days. If you did not expect this invitation, ignore it.</p>
             </div>
           </div>
         `,
-      });
+      );
     } catch (error: unknown) {
-      const mailError = error instanceof Error
-        ? error as Error & {
-            code?: string;
-            responseCode?: number;
-            command?: string;
-          }
-        : undefined;
-
       console.error(
         'NEXA organization invitation email delivery failed.',
         {
-          message: mailError?.message ?? 'Unknown email delivery error',
-          code: mailError?.code,
-          responseCode: mailError?.responseCode,
-          command: mailError?.command,
+          message: error instanceof Error ? error.message : 'Unknown error',
         },
       );
 

@@ -4,6 +4,7 @@ import { motion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 import PlatformAdminDashboard from './PlatformAdminDashboard';
 import ResetPassword from './ResetPassword';
+import PrivacyPolicy from './PrivacyPolicy';
 import AcceptInvitation from './AcceptInvitation';
 import {
   Link,
@@ -1203,6 +1204,11 @@ function App() {
   const token = localStorage.getItem('nexa_token');
   const location = useLocation();
 
+  // Public privacy policy page
+  if (location.pathname === '/privacy-policy') {
+    return <PrivacyPolicy />;
+  }
+
   // Invitation page
   if (location.pathname === '/accept-invitation') {
     return <AcceptInvitation />;
@@ -1239,3 +1245,4 @@ function App() {
   return <DashboardLayout />;
 }
 export default App;
+

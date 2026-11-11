@@ -789,14 +789,17 @@ async forgotPassword(email: string) {
     },
   });
 
-  const frontendUrl = 'http://localhost:5173';
-  const resetUrl =
-    `${frontendUrl}/reset-password?token=${rawToken}`;
+  const frontendUrl =
+    process.env.FRONTEND_URL ||
+    'http://localhost:5173';
+
+  const resetUrl = new URL('/reset-password', frontendUrl);
+  resetUrl.searchParams.set('token', rawToken);
 
   try {
     await this.mailService.sendPasswordResetEmail(
       user.email,
-      resetUrl,
+      resetUrl.toString(),
     );
   } catch {
     await this.prisma.user.update({
@@ -884,3 +887,5 @@ async resetPassword(token: string, newPassword: string) {
 }
 
 }
+
+
